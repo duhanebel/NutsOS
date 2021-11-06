@@ -14,5 +14,6 @@
 
 // Disk
 #define NUTSOS_SECTOR_SIZE 512
+#define NUTSOS_MAX_PATH 256
 
 #endif
