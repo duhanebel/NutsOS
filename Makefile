@@ -25,9 +25,12 @@ all: ./bin/boot.bin ./bin/kernel.bin
 run: all
 	qemu-system-x86_64 -hda bin/os.bin
 
+debug: all
+	gdb -ex "add-symbol-file build/kernelfull.o 0x100000" -ex "target remote | qemu-system-i386 -hda ./bin/os.bin -S -gdb stdio"
+
 ./bin/kernel.bin: $(OBJ_FILES)
 	$(LD) -g -relocatable $(OBJ_FILES) -o ./build/kernelfull.o
-	$(CC) $(FLAGS) -T ./src/linker.ld -o ./bin/kernel.bin -ffreestanding -O0 -nostdlib ./build/kernelfull.o
+	$(CC) $(FLAGS) -T ./src/linker.ld -ffreestanding -O0 -nostdlib ./build/kernelfull.o -o ./bin/kernel.bin
 
 ./bin/boot.bin: ./src/boot/boot.asm
 	nasm -f bin ./src/boot/boot.asm -o ./bin/boot.bin

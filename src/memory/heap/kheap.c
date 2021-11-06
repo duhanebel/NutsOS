@@ -10,7 +10,7 @@ struct heap_table kernel_heap_table;
 
 void kheap_init() {
   int total_table_entries = NUTSOS_HEAP_SIZE_BYTES / NUTSOS_HEAP_BLOCK_SIZE;
-  kernel_heap_table.entries = (HEAP_BLOCK_TABLE_ENTRY *)(NUTSOS_HEAP_TABLE_ADDRESS);
+  kernel_heap_table.entries = (heap_block_table_entry_t *)NUTSOS_HEAP_TABLE_ADDRESS;
   kernel_heap_table.total = total_table_entries;
 
   void *end = (void *)(NUTSOS_HEAP_ADDRESS + NUTSOS_HEAP_SIZE_BYTES);

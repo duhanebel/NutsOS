@@ -22,12 +22,13 @@ typedef uint32_t paging_dir;
 
 struct paging_chunk {
   paging_dir *directory_entry;
+  int dir_count;
+  int entries_count;
 };
 
-// Creates a new paging directory containing PAGING_TOTAL_DIR_ENTRIES entries, each with
-// PAGING_TOTAL_ENTRIES_PER_TABLE describing PAGING_PAGE_SIZE bytes of RAM
-struct paging_chunk *paging_chunk_new(uint8_t flags);
-
+// Creates a new paging directory containing dir_entries entries, each with
+// page_entries describing PAGING_PAGE_SIZE bytes of RAM
+struct paging_chunk *paging_chunk_new(int dir_entries, int page_entries, uint8_t flags);
 // Switches the paging directory in use
 void paging_switch(paging_dir *directory);
 

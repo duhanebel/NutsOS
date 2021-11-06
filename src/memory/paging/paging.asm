@@ -5,7 +5,7 @@ section .asm
 global paging_load_directory
 global enable_paging
 
-; To looad the paging directory all is needed is to set CR3 to the address of the page directory
+; To load the paging directory all is needed is to set CR3 to the address of the page directory
 paging_load_directory:
     push ebp
     mov ebp, esp

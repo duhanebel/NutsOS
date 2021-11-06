@@ -5,7 +5,7 @@
 // A entry in either the directory table or the entry table consists of 8 bits of flags
 // followed by a 24 4096-byte aligned pointer.
 // 31                                         11      9                 0
-// |     4-kbyte aligned page pointer          | Avail |     Flags      |
+// |     4-kbyte aligned page pointer         | Avail |      Flags      |
 // Where the flags are, for the paging directory:
 // S, or 'Page Size' stores the page size for that specific entry. If the bit is set, then pages are 4 MiB in size. Otherwise, they are 4 KiB.
 // A, or 'Accessed' is used to discover whether a page has been read or written to. If it has, then the bit is set, otherwise, it is not.
@@ -31,31 +31,33 @@ void paging_load_directory(paging_dir *directory);
 // Pointer to the directory in use
 static paging_dir *current_directory = 0;
 
-struct paging_chunk *paging_chunk_new(uint8_t flags) {
+struct paging_chunk *paging_chunk_new(int dir_entries, int page_entries, uint8_t flags) {
   // Alloc a full directory of entries
-  uint32_t *directory = kzalloc(sizeof(uint32_t) * PAGING_TOTAL_DIR_ENTRIES);
+  uint32_t *directory = kzalloc(sizeof(paging_dir) * dir_entries);
 
   // For each one of these, populate the entry and assign it to the directory
   int offset = 0;
-  for (int i = 0; i < PAGING_TOTAL_DIR_ENTRIES; i++) {
-    paging_entry *entry = kzalloc(sizeof(uint32_t) * PAGING_TOTAL_ENTRIES_PER_TABLE);
+  for (int i = 0; i < dir_entries; i++) {
+    paging_entry *entry = kzalloc(sizeof(paging_entry) * page_entries);
 
     // For each entry in the entry table, calculate the real memory it points to.
     // In this case we assign linearly, meaning that virt address 0xXX will map to real address 0xXX
-    for (int b = 0; b < PAGING_TOTAL_ENTRIES_PER_TABLE; b++) {
+    for (int b = 0; b < page_entries; b++) {
       entry[b] = (offset + (b * PAGING_PAGE_SIZE)) | flags;
     }
     // Move the offset to the beginning of the next entry table
-    offset += (PAGING_TOTAL_ENTRIES_PER_TABLE * PAGING_PAGE_SIZE);
+    offset += (page_entries * PAGING_PAGE_SIZE);
 
     // Assign the directory entry (remember the format contains a pointer + flags)
     directory[i] = (uint32_t)entry | (flags | PAGING_IS_WRITEABLE);
   }
 
-  struct paging_chunk *chunk_4gb = kzalloc(sizeof(struct paging_chunk));
-  chunk_4gb->directory_entry = directory;
+  struct paging_chunk *chunk = kzalloc(sizeof(struct paging_chunk));
+  chunk->directory_entry = directory;
+  chunk->dir_count = dir_entries;
+  chunk->entries_count = page_entries;
 
-  return chunk_4gb;
+  return chunk;
 }
 
 void paging_switch(paging_dir *directory) {
@@ -67,6 +69,7 @@ paging_dir *paging_chunk_get_directory(struct paging_chunk *chunk) { return chun
 
 bool paging_is_aligned(void *addr) { return ((uint32_t)addr % PAGING_PAGE_SIZE) == 0; }
 
+// Get page directory and entry relative to virtual_address (must be PAGE_SIZE aligned)
 int paging_get_indexes(void *virtual_address, uint32_t *directory_index_out, uint32_t *table_index_out) {
   int res = 0;
   if (!paging_is_aligned(virtual_address)) {
@@ -79,6 +82,7 @@ int paging_get_indexes(void *virtual_address, uint32_t *directory_index_out, uin
   return res;
 }
 
+// Set page descriptor for the page related to address virt in directory
 int paging_set(paging_dir *directory, void *virt, paging_entry pdesc) {
   if (!paging_is_aligned(virt)) {
     return -EINVARG;

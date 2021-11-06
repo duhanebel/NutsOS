@@ -21,8 +21,7 @@ int heap_create(struct heap *heap, void *ptr, void *end, struct heap_table *tabl
 
   // Make sure both beginning and end are 4k-aligned
   if (!heap_validate_alignment(ptr) || !heap_validate_alignment(end)) {
-    res = -EINVARG;
-    goto out;
+    return -EINVARG;
   }
 
   memset(heap, 0, sizeof(struct heap));
@@ -31,14 +30,13 @@ int heap_create(struct heap *heap, void *ptr, void *end, struct heap_table *tabl
 
   res = heap_validate_table(ptr, end, table);
   if (res < 0) {
-    goto out;
+    return res;
   }
 
-  size_t table_size = sizeof(HEAP_BLOCK_TABLE_ENTRY) * table->total;
+  size_t table_size = sizeof(heap_block_table_entry_t) * table->total;
   memset(table->entries, HEAP_BLOCK_TABLE_ENTRY_FREE, table_size);
 
-out:
-  return res;
+  return 0;
 }
 
 // Takes a size and return the closest larger size that is aligned to 4k blocks
@@ -52,15 +50,15 @@ static uint32_t heap_align_value_to_upper(uint32_t val) {
   return val;
 }
 
-static int heap_get_entry_type(HEAP_BLOCK_TABLE_ENTRY entry) { return entry & 0x0f; }
+static int heap_get_entry_type(heap_block_table_entry_t entry) { return entry & HEAP_BLOCK_MASK_TYPE; }
 
-int heap_get_start_block(struct heap *heap, uint32_t total_blocks) {
+int heap_get_next_free_block(struct heap *heap, uint32_t total_blocks) {
   struct heap_table *table = heap->table;
   int bc = 0;
   int bs = -1;
 
   for (size_t i = 0; i < table->total; i++) {
-    // Not free, let's skip the entry and move on to the next oone
+    // Not free, let's skip the entry, reset the count and move on to the next one
     if (heap_get_entry_type(table->entries[i]) != HEAP_BLOCK_TABLE_ENTRY_FREE) {
       bc = 0;
       bs = -1;
@@ -87,19 +85,20 @@ int heap_get_start_block(struct heap *heap, uint32_t total_blocks) {
 }
 
 void *heap_block_to_address(struct heap *heap, int block) { return heap->saddr + (block * NUTSOS_HEAP_BLOCK_SIZE); }
+int heap_address_to_block(struct heap *heap, void *address) { return ((int)(address - heap->saddr)) / NUTSOS_HEAP_BLOCK_SIZE; }
 
 void heap_mark_blocks_taken(struct heap *heap, int start_block, int total_blocks) {
-  int end_block_idx = (start_block + total_blocks) - 1;
+  int end_block = (start_block + total_blocks) - 1;
 
-  HEAP_BLOCK_TABLE_ENTRY entry = HEAP_BLOCK_TABLE_ENTRY_TAKEN | HEAP_BLOCK_IS_FIRST;
+  heap_block_table_entry_t entry = HEAP_BLOCK_TABLE_ENTRY_TAKEN | HEAP_BLOCK_IS_FIRST;
   if (total_blocks > 1) {
     entry |= HEAP_BLOCK_HAS_NEXT;
   }
 
-  for (int i = start_block; i <= end_block_idx; i++) {
+  for (int i = start_block; i <= end_block; i++) {
     heap->table->entries[i] = entry;
     entry = HEAP_BLOCK_TABLE_ENTRY_TAKEN;
-    if (i != end_block_idx - 1) {
+    if (i != end_block - 1) {
       entry |= HEAP_BLOCK_HAS_NEXT;
     }
   }
@@ -108,7 +107,7 @@ void heap_mark_blocks_taken(struct heap *heap, int start_block, int total_blocks
 void *heap_malloc_blocks(struct heap *heap, uint32_t total_blocks) {
   void *address = 0;
 
-  int start_block = heap_get_start_block(heap, total_blocks);
+  int start_block = heap_get_next_free_block(heap, total_blocks);
 
   // Couldn't find any free space, return zero
   if (start_block < 0) {
@@ -126,15 +125,13 @@ void *heap_malloc_blocks(struct heap *heap, uint32_t total_blocks) {
 void heap_mark_blocks_free(struct heap *heap, int starting_block) {
   struct heap_table *table = heap->table;
   for (int i = starting_block; i < (int)table->total; i++) {
-    HEAP_BLOCK_TABLE_ENTRY entry = table->entries[i];
+    heap_block_table_entry_t entry = table->entries[i];
     table->entries[i] = HEAP_BLOCK_TABLE_ENTRY_FREE;
     if (!(entry & HEAP_BLOCK_HAS_NEXT)) {
       break;
     }
   }
 }
-
-int heap_address_to_block(struct heap *heap, void *address) { return ((int)(address - heap->saddr)) / NUTSOS_HEAP_BLOCK_SIZE; }
 
 void *heap_malloc(struct heap *heap, size_t size) {
   size_t aligned_size = heap_align_value_to_upper(size);
