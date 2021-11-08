@@ -30,17 +30,16 @@ static struct path_root *pathparser_create_root(int drive_number) {
   return path_r;
 }
 
-static const char *pathparser_get_path_part(const char **path) {
+static const char *pathparser_extract_next_path_part(const char **path) {
   char *result_path_part = kzalloc(NUTSOS_MAX_PATH);
   int i = 0;
-  while (**path != '/' && **path != 0x00) {
+  while (**path != '/' && **path != 0) {
     result_path_part[i] = **path;
     *path += 1;
     i++;
   }
 
   if (**path == '/') {
-    // Skip the forward slash to avoid problems
     *path += 1;
   }
 
@@ -53,14 +52,14 @@ static const char *pathparser_get_path_part(const char **path) {
 }
 
 struct path_part *pathparser_parse_path_part(struct path_part *last_part, const char **path) {
-  const char *path_part_str = pathparser_get_path_part(path);
+  const char *path_part_str = pathparser_extract_next_path_part(path);
   if (!path_part_str) {
     return 0;
   }
 
   struct path_part *part = kzalloc(sizeof(struct path_part));
   part->part = path_part_str;
-  part->next = 0x00;
+  part->next = 0;
 
   if (last_part) {
     last_part->next = part;

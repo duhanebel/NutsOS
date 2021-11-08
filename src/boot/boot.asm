@@ -6,12 +6,30 @@ BITS 16 ; i386 starts in real mode, which is 16bit
 CODE_SEG equ gdt_code - gdt_start ; 0x08
 DATA_SEG equ gdt_data - gdt_start ; 0x10
 
-_start:
-    jmp short start ; Jump pass the boot sector descriptor
-    nop
+; boot sector descriptor - see https://wiki.osdev.org/FAT#Boot_Record
+jmp short start ; Jump pass the boot sector descriptor
+nop
+OEMIdentifier           db 'MSWIN4.1' ; OEM identifier. The first 8 Bytes (3 - 10) is the version of DOS being used. 
+BytesPerSector          dw 0x200 ; The number of Bytes per sector (remember, all numbers are in the little-endian format).
+SectorsPerCluster       db 0x80 ; Number of sectors per cluster.
+ReservedSectors         dw 200 ; Number of reserved sectors. The boot record sectors are included in this value.
+FATCopies               db 0x02 ; Number of File Allocation Tables (FAT's) on the storage media.
+RootDirEntries          dw 0x40 ; Number of directory entries (must be set so that the root directory occupies entire sectors).
+NumSectors              dw 0x00 ; The total sectors in the logical volume. If this value is 0, it means there are more than 65535 sectors in the volume, and the actual count is stored in the Large Sector Count entry at 0x20.
+MediaType               db 0xF8 ; This Byte indicates the media descriptor type (F8 = fixed disk)
+SectorsPerFat           dw 0x100 ; Number of sectors per FAT. FAT12/FAT16 only.
+SectorsPerTrack         dw 0x20 ; Number of sectors per track - useless if the FS is moved
+NumberOfHeads           dw 0x40 ; Number of heads or sides on the storage media - useless if the FS is moved.
+HiddenSectors           dd 0x00 ; Number of hidden sectors. 
+SectorsBig              dd 0x773594 ; Large sector count. This field is set if there are more than 65535 sectors in the volume, resulting in a value which does not fit in the Number of Sectors entry at 0x13.
 
-; boot sector descriptor
- times 33 db 0
+; Extended BPB (Dos 4.0)
+DriveNumber             db 0x80 ; Drive number - 0x80 for hard disks - useless if the FS is moved
+WinNTBit                db 0x00 ; Flags in Windows NT. Reserved otherwise.
+Signature               db 0x29 ; Signature (must be 0x28 or 0x29).
+VolumeID                dd 0xD105 ; VolumeID 'Serial' number. Used for tracking volumes between computers. 
+VolumeIDString          db 'NUTSOS BOOT' ; Volume label string. Exactly 11 bytes - This field is padded with spaces.
+SystemIDString          db 'FAT16   ' ; System identifier string. Exactly 8 bytes - This field is a string representation of the FAT file system type. It is padded with spaces.
 
 start:
     jmp 0:setup_segments

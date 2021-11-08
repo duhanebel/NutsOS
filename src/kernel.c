@@ -1,5 +1,6 @@
 #include "kernel.h"
 #include "disk/disk.h"
+#include "disk/stream.h"
 #include "idt/idt.h"
 #include "io/io.h"
 #include "memory/heap/kheap.h"
@@ -34,4 +35,13 @@ void kmain() {
 
   // Enable the system interrupts
   enable_interrupts();
+
+  struct disk_stream *stream = diskstream_new(0);
+  diskstream_seek(stream, 0x130);
+  char buf[1000];
+  // unsigned char c = 0;
+  // diskstream_read(stream, &c, 1);
+  diskstream_read(stream, &buf, 600);
+  while (1) {
+  }
 }

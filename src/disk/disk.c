@@ -39,6 +39,7 @@ void disk_search_and_init() {
   memset(&disk, 0, sizeof(disk));
   disk.type = NUTSOS_DISK_TYPE_REAL;
   disk.sector_size = NUTSOS_SECTOR_SIZE;
+  disk.filesystem = fs_resolve(&disk);
 }
 
 // Only one disk for now
