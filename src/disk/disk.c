@@ -9,7 +9,8 @@ struct disk disk;
 
 // Similar to read_lba in boot.asm, this C function reads a sector from disk
 // See read in LBA mode: https://wiki.osdev.org/ATA_read/write_sectors
-int disk_read_sector(int lba, int total, void *buf) {
+int disk_read_sector(int lba, int total, void *buf)
+{
   outb(0x1F6, (lba >> 24) | 0xE0);
   outb(0x1F2, total);
   outb(0x1F3, (unsigned char)(lba & 0xff));
@@ -35,7 +36,8 @@ int disk_read_sector(int lba, int total, void *buf) {
 }
 
 // No search, just statically define one disk
-void disk_search_and_init() {
+void disk_search_and_init()
+{
   memset(&disk, 0, sizeof(disk));
   disk.type = NUTSOS_DISK_TYPE_REAL;
   disk.sector_size = NUTSOS_SECTOR_SIZE;
@@ -43,14 +45,16 @@ void disk_search_and_init() {
 }
 
 // Only one disk for now
-struct disk *disk_get(int index) {
+struct disk *disk_get(int index)
+{
   if (index != 0)
     return 0;
 
   return &disk;
 }
 
-int disk_read_block(struct disk *idisk, unsigned int lba, int total, void *buf) {
+int disk_read_block(struct disk *idisk, unsigned int lba, int total, void *buf)
+{
   if (idisk != &disk) {
     return -EIO;
   }

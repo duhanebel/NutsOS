@@ -3,7 +3,8 @@
 #include "error.h"
 #include "memory/heap/kheap.h"
 
-struct disk_stream *diskstream_new(int disk_id) {
+struct disk_stream *diskstream_new(int disk_id)
+{
   struct disk *disk = disk_get(disk_id);
   if (!disk) {
     return 0;
@@ -15,12 +16,14 @@ struct disk_stream *diskstream_new(int disk_id) {
   return stream;
 }
 
-int diskstream_seek(struct disk_stream *stream, int pos) {
+int diskstream_seek(struct disk_stream *stream, int pos)
+{
   stream->pos = pos;
   return 0;
 }
 
-int diskstream_read_old(struct disk_stream *stream, void *out, int total) {
+int diskstream_read_old(struct disk_stream *stream, void *out, int total)
+{
   int sector = stream->pos / NUTSOS_SECTOR_SIZE;
   int offset = stream->pos % NUTSOS_SECTOR_SIZE;
   char buf[NUTSOS_SECTOR_SIZE];
@@ -44,7 +47,8 @@ out:
   return res;
 }
 
-int diskstream_read(struct disk_stream *stream, void *out, int total) {
+int diskstream_read(struct disk_stream *stream, void *out, int total)
+{
   char buf[NUTSOS_SECTOR_SIZE];
 
   int sector = stream->pos / NUTSOS_SECTOR_SIZE;
@@ -77,4 +81,7 @@ int diskstream_read(struct disk_stream *stream, void *out, int total) {
   return res;
 }
 
-void diskstream_close(struct disk_stream *stream) { kfree(stream); }
+void diskstream_close(struct disk_stream *stream)
+{
+  kfree(stream);
+}

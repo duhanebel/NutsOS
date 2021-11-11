@@ -6,12 +6,14 @@
 #include "memory/memory.h"
 #include "stdutil/string.h"
 
-static int pathparser_is_path_valid(const char *filename) {
+static int pathparser_is_path_valid(const char *filename)
+{
   int len = strnlen(filename, NUTSOS_MAX_PATH);
   return (len >= 3 && isdigit(filename[0]) && memcmp((void *)&filename[1], ":/", 2) == 0);
 }
 
-static int pathparser_extract_drive_from_path(const char **path) {
+static int pathparser_extract_drive_from_path(const char **path)
+{
   if (!pathparser_is_path_valid(*path)) {
     return -EBADPATH;
   }
@@ -23,14 +25,16 @@ static int pathparser_extract_drive_from_path(const char **path) {
   return drive_no;
 }
 
-static struct path_root *pathparser_create_root(int drive_number) {
+static struct path_root *pathparser_create_root(int drive_number)
+{
   struct path_root *path_r = kzalloc(sizeof(struct path_root));
   path_r->drive_no = drive_number;
   path_r->first = 0;
   return path_r;
 }
 
-static const char *pathparser_extract_next_path_part(const char **path) {
+static const char *pathparser_extract_next_path_part(const char **path)
+{
   char *result_path_part = kzalloc(NUTSOS_MAX_PATH);
   int i = 0;
   while (**path != '/' && **path != 0) {
@@ -51,7 +55,8 @@ static const char *pathparser_extract_next_path_part(const char **path) {
   return result_path_part;
 }
 
-struct path_part *pathparser_parse_path_part(struct path_part *last_part, const char **path) {
+struct path_part *pathparser_parse_path_part(struct path_part *last_part, const char **path)
+{
   const char *path_part_str = pathparser_extract_next_path_part(path);
   if (!path_part_str) {
     return 0;
@@ -68,7 +73,8 @@ struct path_part *pathparser_parse_path_part(struct path_part *last_part, const 
   return part;
 }
 
-void pathparser_free(struct path_root *root) {
+void pathparser_free(struct path_root *root)
+{
   struct path_part *part = root->first;
   while (part) {
     struct path_part *next_part = part->next;
@@ -80,7 +86,8 @@ void pathparser_free(struct path_root *root) {
   kfree(root);
 }
 
-struct path_root *pathparser_parse(const char *path, const char *current_directory_path) {
+struct path_root *pathparser_parse(const char *path, const char *current_directory_path)
+{
   int res = 0;
   const char *tmp_path = path;
   struct path_root *path_root = 0;

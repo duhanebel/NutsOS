@@ -23,7 +23,7 @@
 // 0, if PAT is supported, shall indicate the memory type. Otherwise, it must be 0.
 
 #define PAGING_ENTRY_GET_POINTER(entry) (uint32_t *)((entry)&0xFFFFF000)
-#define PAGING_ENTRY_GET_FLAGS(entry) ((entry)&0x00000FFF)
+#define PAGING_ENTRY_GET_FLAGS(entry)   ((entry)&0x00000FFF)
 
 // Defined in paging.asm
 void paging_load_directory(paging_dir *directory);
@@ -31,7 +31,8 @@ void paging_load_directory(paging_dir *directory);
 // Pointer to the directory in use
 static paging_dir *current_directory = 0;
 
-struct paging_chunk *paging_chunk_new(int dir_entries, int page_entries, uint8_t flags) {
+struct paging_chunk *paging_chunk_new(int dir_entries, int page_entries, uint8_t flags)
+{
   // Alloc a full directory of entries
   uint32_t *directory = kzalloc(sizeof(paging_dir) * dir_entries);
 
@@ -60,17 +61,25 @@ struct paging_chunk *paging_chunk_new(int dir_entries, int page_entries, uint8_t
   return chunk;
 }
 
-void paging_switch(paging_dir *directory) {
+void paging_switch(paging_dir *directory)
+{
   paging_load_directory(directory);
   current_directory = directory;
 }
 
-paging_dir *paging_chunk_get_directory(struct paging_chunk *chunk) { return chunk->directory_entry; }
+paging_dir *paging_chunk_get_directory(struct paging_chunk *chunk)
+{
+  return chunk->directory_entry;
+}
 
-bool paging_is_aligned(void *addr) { return ((uint32_t)addr % PAGING_PAGE_SIZE) == 0; }
+bool paging_is_aligned(void *addr)
+{
+  return ((uint32_t)addr % PAGING_PAGE_SIZE) == 0;
+}
 
 // Get page directory and entry relative to virtual_address (must be PAGE_SIZE aligned)
-int paging_get_indexes(void *virtual_address, uint32_t *directory_index_out, uint32_t *table_index_out) {
+int paging_get_indexes(void *virtual_address, uint32_t *directory_index_out, uint32_t *table_index_out)
+{
   int res = 0;
   if (!paging_is_aligned(virtual_address)) {
     return -EINVARG;
@@ -83,7 +92,8 @@ int paging_get_indexes(void *virtual_address, uint32_t *directory_index_out, uin
 }
 
 // Set page descriptor for the page related to address virt in directory
-int paging_set(paging_dir *directory, void *virt, paging_entry pdesc) {
+int paging_set(paging_dir *directory, void *virt, paging_entry pdesc)
+{
   if (!paging_is_aligned(virt)) {
     return -EINVARG;
   }

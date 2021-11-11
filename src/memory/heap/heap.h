@@ -17,11 +17,11 @@
 //  7  | Equals 1 if this is not the last block of an allocated chunk
 
 #define HEAP_BLOCK_TABLE_ENTRY_TAKEN 0b00000001
-#define HEAP_BLOCK_TABLE_ENTRY_FREE 0b00000000
-#define HEAP_BLOCK_MASK_TYPE 0b00000001
+#define HEAP_BLOCK_TABLE_ENTRY_FREE  0b00000000
+#define HEAP_BLOCK_MASK_TYPE         0b00000001
 
-#define HEAP_BLOCK_HAS_NEXT 0b10000000
-#define HEAP_BLOCK_IS_FIRST 0b01000000
+#define HEAP_BLOCK_HAS_NEXT          0b10000000
+#define HEAP_BLOCK_IS_FIRST          0b01000000
 
 typedef unsigned char heap_block_table_entry_t;
 

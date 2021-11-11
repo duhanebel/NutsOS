@@ -1,6 +1,7 @@
 #include "file.h"
 #include "config.h"
 #include "error.h"
+#include "fat/fat16.h"
 #include "kernel.h"
 #include "memory/heap/kheap.h"
 #include "memory/memory.h"
@@ -8,7 +9,8 @@
 struct filesystem *filesystems[NUTSOS_MAX_FILESYSTEMS];
 struct file_descriptor *file_descriptors[NUTSOS_MAX_FILE_DESCRIPTORS];
 
-static struct filesystem **fs_get_free_filesystem() {
+static struct filesystem **fs_get_free_filesystem()
+{
   int i = 0;
   for (i = 0; i < NUTSOS_MAX_FILESYSTEMS; i++) {
     if (filesystems[i] == 0) {
@@ -19,7 +21,8 @@ static struct filesystem **fs_get_free_filesystem() {
   return 0;
 }
 
-int fs_insert_filesystem(struct filesystem *filesystem) {
+int fs_insert_filesystem(struct filesystem *filesystem)
+{
   struct filesystem **fs;
   fs = fs_get_free_filesystem();
   if (!fs) {
@@ -30,20 +33,26 @@ int fs_insert_filesystem(struct filesystem *filesystem) {
   return 0;
 }
 
-static void fs_static_load() {
-  // fs_insert_filesystem(fat16_init());
+static void fs_static_load()
+{
+  fs_insert_filesystem(fat16_init());
 }
 
-void fs_load() { fs_static_load(); }
+void fs_load()
+{
+  fs_static_load();
+}
 
-void fs_init() {
+void fs_init()
+{
   memset(file_descriptors, 0, sizeof(file_descriptors));
   memset(filesystems, 0, sizeof(filesystems));
 
   fs_load();
 }
 
-static int file_new_descriptor(struct file_descriptor **desc_out) {
+static int file_descriptor_new(struct file_descriptor **desc_out)
+{
   int res = -ENOMEM;
   for (int i = 0; i < NUTSOS_MAX_FILE_DESCRIPTORS; i++) {
     if (file_descriptors[i] == 0) {
@@ -60,7 +69,8 @@ static int file_new_descriptor(struct file_descriptor **desc_out) {
   return res;
 }
 
-static struct file_descriptor *file_get_descriptor(int fd) {
+static struct file_descriptor *file_get_descriptor(int fd)
+{
   if (fd <= 0 || fd >= NUTSOS_MAX_FILE_DESCRIPTORS) {
     return 0;
   }
@@ -70,7 +80,8 @@ static struct file_descriptor *file_get_descriptor(int fd) {
   return file_descriptors[index];
 }
 
-struct filesystem *fs_resolve(struct disk *disk) {
+struct filesystem *fs_resolve(struct disk *disk)
+{
   struct filesystem *fs = 0;
   for (int i = 0; i < NUTSOS_MAX_FILESYSTEMS; i++) {
     if (filesystems[i] != 0 && filesystems[i]->resolve(disk) == 0) {
@@ -81,4 +92,7 @@ struct filesystem *fs_resolve(struct disk *disk) {
   return fs;
 }
 
-int fopen(const char *filename, const char *mode) { return -EIO; }
+int fopen(const char *filename, const char *mode)
+{
+  return -EIO;
+}

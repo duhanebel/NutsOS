@@ -6,17 +6,17 @@ ENV PATH="$PREFIX/bin:$PATH"
 
 WORKDIR /tmp
 RUN apt-get update && apt-get -y install \
-      make                               \
-      nasm                               \
-      curl                               \
-      build-essential                    \
-      bison                              \
-      flex                               \
-      libgmp3-dev                        \
-      libmpc-dev                         \
-      libmpfr-dev                        \
-      texinfo                            \
-      libisl-dev
+    make                               \
+    nasm                               \
+    curl                               \
+    build-essential                    \
+    bison                              \
+    flex                               \
+    libgmp3-dev                        \
+    libmpc-dev                         \
+    libmpfr-dev                        \
+    texinfo                            \
+    libisl-dev
 RUN curl https://ftp.nluug.nl/pub/gnu/binutils/binutils-2.37.tar.gz | tar xz \
     && curl https://mirrorservice.org/sites/sourceware.org/pub/gcc/releases/gcc-11.2.0/gcc-11.2.0.tar.gz | tar xz \
     && mkdir build-binutils \
