@@ -19,19 +19,20 @@
             "group": "none",
         },
         {
-            "label": "kill QEMU",
-            "type": "shell",
-            "command": "killall qemu-system-i386",
-            "group": "build"
+            "label": "Build and start QEMU",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Make all",
+                "start QEMU"
+            ],
         },
-        /*       {
-            "label": "Compile file",
+        {
+            "label": "Make all",
             "type": "shell",
-            "command": "OPATH=${relativeFileDirname} && make build/${OPATH#src/}${pathSeparator}${fileBasenameNoExtension}.o",
-            "problemMatcher": [],
-            "group": "build"
+            "command": "make all",
+            "isBackground": false,
+            "problemMatcher": "$gcc",
         },
-        */
         {
             "type": "cppbuild",
             "label": "C/C++: gcc build active file",

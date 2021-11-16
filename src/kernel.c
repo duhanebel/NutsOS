@@ -41,10 +41,9 @@ void kmain()
   // Enable the system interrupts
   enable_interrupts();
 
-  print("TestTEstTest!");
   struct file_descriptor *fd = fopen("0:/hello.txt", "r");
   if (fd) {
-    print("We opened hello.txt\n");
+    print("We opened hello.txt!!!\n");
   }
   while (1) {}
 }
