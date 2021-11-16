@@ -1,5 +1,15 @@
 {
     "files.associations": {
-        "bitset": "c"
-    }
+        "bitset": "c",
+        "memory.h": "c",
+        "string.h": "c"
+    },
+    "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools",
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "/workspaces/PeachOS/bin",
+            "binaryPath": "/workspaces/PeachOS/bin/kernel.bin",
+            "binaryArgs": []
+        }
+    ]
 }

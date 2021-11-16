@@ -13,20 +13,24 @@ $(info $$OBJ_FILES is [${OBJ_FILES}])
 INCLUDES = -I./src
 FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 
-CC=./dev-img/run.sh i686-elf-gcc
-LD=./dev-img/run.sh i686-elf-ld
+# CC=./dev-img/run.sh i686-elf-gcc
+# LD=./dev-img/run.sh i686-elf-ld
+CC=i686-elf-gcc
+LD=i686-elf-ld
 
 all: ./bin/boot.bin ./bin/kernel.bin
 	rm -rf ./bin/os.bin
 	dd if=./bin/boot.bin >> ./bin/os.bin
 	dd if=./bin/kernel.bin >> ./bin/os.bin
 	dd if=/dev/zero bs=1048576 count=16 >> ./bin/os.bin
+	# Copy a test file inside the fat16 image
+	sudo mount -t vfat bin/os.bin /mnt/ && sudo cp bootimg-files/* /mnt/ && sudo umount /mnt
 
 run: all
 	qemu-system-x86_64 -hda bin/os.bin
 
 debug: all
-	gdb -ex "add-symbol-file build/kernelfull.o 0x100000" -ex "target remote | qemu-system-i386 -hda ./bin/os.bin -S -gdb stdio"
+	gdb -ex "set confirm off" -ex "set pagination off" -ex "add-symbol-file build/kernelfull.o 0x100000" -ex "target remote | qemu-system-i386 -hda ./bin/os.bin -S -gdb stdio"
 
 ./bin/kernel.bin: $(OBJ_FILES)
 	$(LD) -g -relocatable $(OBJ_FILES) -o ./build/kernelfull.o

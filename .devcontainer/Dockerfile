@@ -1,4 +1,8 @@
-FROM debian:bullseye
+# See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.205.2/containers/debian/.devcontainer/base.Dockerfile
+# [Choice] Debian version (use bullseye or stretch on local arm64/Apple Silicon): bullseye, buster, stretch
+ARG VARIANT="buster"
+FROM mcr.microsoft.com/vscode/devcontainers/base:0-${VARIANT}
+#FROM debian:bullseye
 
 ENV PREFIX="/usr/local/"
 ENV TARGET=i686-elf
@@ -16,7 +20,9 @@ RUN apt-get update && apt-get -y install \
     libmpc-dev                         \
     libmpfr-dev                        \
     texinfo                            \
-    libisl-dev                        
+    libisl-dev                         \
+    gdb-multiarch                      \
+    qemu-system-i386                               
 RUN curl https://ftp.nluug.nl/pub/gnu/binutils/binutils-2.37.tar.gz | tar xz \
     && curl https://mirrorservice.org/sites/sourceware.org/pub/gcc/releases/gcc-11.2.0/gcc-11.2.0.tar.gz | tar xz \
     && mkdir build-binutils \
@@ -30,6 +36,3 @@ RUN curl https://ftp.nluug.nl/pub/gnu/binutils/binutils-2.37.tar.gz | tar xz \
     && make install-gcc && make install-target-libgcc \
     && cd .. && rm -rf build-binutils build-gcc \
     && i686-elf-gcc --version
-
-CMD ["/bin/bash", "--login"]
-
