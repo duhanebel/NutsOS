@@ -22,31 +22,6 @@ int diskstream_seek(struct disk_stream *stream, int pos)
   return 0;
 }
 
-int diskstream_read_old(struct disk_stream *stream, void *out, int total)
-{
-  int sector = stream->pos / NUTSOS_SECTOR_SIZE;
-  int offset = stream->pos % NUTSOS_SECTOR_SIZE;
-  char buf[NUTSOS_SECTOR_SIZE];
-
-  int res = disk_read_block(stream->disk, sector, 1, buf);
-  if (res < 0) {
-    goto out;
-  }
-
-  int total_to_read = total > NUTSOS_SECTOR_SIZE ? NUTSOS_SECTOR_SIZE : total;
-  for (int i = 0; i < total_to_read; i++) {
-    *(char *)out++ = buf[offset + i];
-  }
-
-  // Adjust the stream
-  stream->pos += total_to_read;
-  if (total > NUTSOS_SECTOR_SIZE) {
-    res = diskstream_read(stream, out, total - NUTSOS_SECTOR_SIZE);
-  }
-out:
-  return res;
-}
-
 int diskstream_read(struct disk_stream *stream, void *out, int total)
 {
   char buf[NUTSOS_SECTOR_SIZE];

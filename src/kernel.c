@@ -1,6 +1,7 @@
 #include "kernel.h"
 #include "disk/disk.h"
 #include "disk/stream.h"
+#include "fs/file.h"
 #include "idt/idt.h"
 #include "io/io.h"
 #include "memory/heap/kheap.h"
@@ -18,6 +19,12 @@ void kmain()
   // Initialize the heap
   kheap_init();
 
+  // Initialize filesystems
+  fs_init();
+
+  // Search and initialize the disks
+  disk_search_and_init();
+
   // Initialize the interrupt descriptor table
   idt_init();
 
@@ -31,17 +38,13 @@ void kmain()
   // Enable paging
   enable_paging();
 
-  // Search and initialize the disks
-  disk_search_and_init();
-
   // Enable the system interrupts
   enable_interrupts();
 
-  struct disk_stream *stream = diskstream_new(0);
-  diskstream_seek(stream, 0x130);
-  char buf[1000];
-  // unsigned char c = 0;
-  // diskstream_read(stream, &c, 1);
-  diskstream_read(stream, &buf, 600);
+  print("TestTEstTest!");
+  struct file_descriptor *fd = fopen("0:/hello.txt", "r");
+  if (fd) {
+    print("We opened hello.txt\n");
+  }
   while (1) {}
 }

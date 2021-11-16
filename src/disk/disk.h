@@ -11,7 +11,11 @@ typedef unsigned int disk_type_t;
 struct disk {
   disk_type_t type;
   int sector_size;
+  int id;
   struct filesystem *filesystem;
+  
+  // Used by the fs driver
+  void *fs_private;
 };
 
 void disk_search_and_init();

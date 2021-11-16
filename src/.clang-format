@@ -16,6 +16,7 @@ AllowShortFunctionsOnASingleLine: Empty
 BreakBeforeBraces: Custom
 BraceWrapping:
   AfterFunction: true
+  AfterEnum: true
 
 
 #BreakBeforeBraces: Allman, AllowShortIfStatementsOnASingleLine: false, IndentCaseLabels: false, ColumnLimit: 0, AccessModifierOffset: -4, NamespaceIndentation: All, FixNamespaceComments: false }.
