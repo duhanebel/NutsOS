@@ -45,6 +45,8 @@
                 "${file}",
                 "-o",
                 "${workspaceFolder}/build/vscode/${fileBasenameNoExtension}.o",
+                "-O0",
+                "-g",
                 "-ffreestanding",
                 "-fno-builtin",
                 "-nostdlib",

@@ -8,19 +8,37 @@
             "type": "gdb",
             "request": "attach",
             "name": "Debug on QEMU",
-            "executable": "${workspaceFolder}/build/kernelfull.o",
+            "executable": "${workspaceFolder}/build/kernelfull.build/kernelfull.o",
             "gdbpath": "/usr/bin/gdb-multiarch",
             "target": "localhost:1234",
             "remote": true,
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "Build and start QEMU",
             "postDebugTask": "stop QEMU",
-            "valuesFormatting": "parseText",
+            "valuesFormatting": "prettyPrinters",
             "autorun": [
                 "set confirm off",
                 "set pagination off",
                 "add-symbol-file ${workspaceFolder}/build/kernelfull.o 0x100000",
             ]
-        }
+        },
+        // {
+        //     "type": "gdb",
+        //     "request": "attach",
+        //     "name": "lldb on QEMU",
+        //     "executable": "${workspaceFolder}/build/kernelfull.build/kernelfull.o",
+        //     "gdbpath": "/usr/bin/gdb-multiarch",
+        //     "target": "localhost:1234",
+        //     "remote": true,
+        //     "cwd": "${workspaceRoot}",
+        //     "preLaunchTask": "Build and start QEMU",
+        //     "postDebugTask": "stop QEMU",
+        //     "valuesFormatting": "parseText",
+        //     "autorun": [
+        //         "set confirm off",
+        //         "set pagination off",
+        //         "add-symbol-file ${workspaceFolder}/build/kernelfull.o 0x100000",
+        //     ]
+        // }
     ]
 }
