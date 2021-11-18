@@ -30,8 +30,9 @@ void kmain()
   idt_init();
 
   // Setup paging
-  kernel_chunk = paging_chunk_new(
-      PAGING_TOTAL_DIR_ENTRIES, PAGING_TOTAL_ENTRIES_PER_TABLE, PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
+  kernel_chunk = paging_chunk_new(PAGING_TOTAL_DIR_ENTRIES,
+                                  PAGING_TOTAL_ENTRIES_PER_TABLE,
+                                  PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
 
   // Switch to kernel paging chunk
   paging_switch(paging_chunk_get_directory(kernel_chunk));
