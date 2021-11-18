@@ -24,7 +24,7 @@ all: ./bin/boot.bin ./bin/kernel.bin
 	dd if=./bin/kernel.bin >> ./bin/os.bin
 	dd if=/dev/zero bs=1048576 count=16 >> ./bin/os.bin
 	# Copy a test file inside the fat16 image
-	sudo mount -t vfat bin/os.bin /mnt/ && sudo cp bootimg-files/* /mnt/ && sudo umount /mnt
+	sudo mount -t vfat bin/os.bin /mnt/ && sudo cp -r bootimg-files/* /mnt/ && sudo umount /mnt
 
 run: all
 	qemu-system-x86_64 -hda bin/os.bin

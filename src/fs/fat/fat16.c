@@ -305,10 +305,10 @@ struct fat_item *fat16_new_fat_item_for_directory_item(const struct disk *disk, 
     fat_item->type = fat_type_directory;
   } else {
     // It's file - we're done
+    fat_item->item = fat16_copy_directory_item(item);
     fat_item->type = fat_type_file;
   }
 
-  fat_item->item = fat16_copy_directory_item(item);
   return fat_item;
 }
 
@@ -321,30 +321,41 @@ int fat16_sector_to_abs_address(const struct disk *disk, int sector)
 
 void fat16_get_full_filename(const struct fat_directory_item *item, char *out, int max_len)
 {
-  int i = 0;
+  max_len--; // Account for the mandatory nil-terminator
+
   // Copy the filename to out until we find a space (filenames are space padded)
-  while (max_len--) {
-    char c = item->filename[i++];
-    if (isspace(c)) {
+  for (int i = 0; i < sizeof(item->filename) && max_len; i++, max_len--) {
+    char c = item->filename[i];
+    if (c == '\0' || isspace(c)) {
       break;
     }
     *out++ = c;
   }
 
+  // No extension on directories
+  if (item->attribute & FAT_FILE_SUBDIRECTORY) {
+    *out = '\0';
+    return;
+  }
+
   // If there's no space for the extension let's not bother with the '.'
-  if (max_len <= 1) {
+  if (--max_len == 0) {
     return;
   }
 
   // Add the extension separator
-  *++out = '.';
+  *out++ = '.';
 
-  i = 0;
   // Ditto for extensions
-  while (max_len--) {
-    char c = item->ext[i++];
+  for (int i = 0; i < sizeof(item->ext) && max_len; i++, max_len--) {
+    char c = item->ext[i];
+    if (c == '\0' || isspace(c)) {
+      break;
+    }
     *out++ = c;
   }
+
+  *out++ = '\0';
 }
 
 // Find a fat_item for file described by name
@@ -526,9 +537,9 @@ int fat16_get_root_directory(struct disk *disk, struct fat_private *fat_private,
   int root_dir_sector_pos = (primary_header->fat_copies * primary_header->sectors_per_fat) + primary_header->reserved_sectors;
   int root_dir_entries = fat_private->header.primary_header.root_dir_entries;
   int root_dir_size = (root_dir_entries * sizeof(struct fat_directory_item));
-  int total_sectors = root_dir_size / disk->sector_size;
+  int total_root_sectors = root_dir_size / disk->sector_size;
   if (root_dir_size % disk->sector_size) {
-    total_sectors += 1;
+    total_root_sectors += 1;
   }
 
   int total_items = fat16_get_total_items_for_directory(disk, root_dir_sector_pos);
@@ -550,7 +561,7 @@ int fat16_get_root_directory(struct disk *disk, struct fat_private *fat_private,
   directory_out->item = dir;
   directory_out->total = total_items;
   directory_out->sector_pos = root_dir_sector_pos;
-  directory_out->ending_sector_pos = root_dir_sector_pos + (root_dir_size / disk->sector_size);
+  directory_out->ending_sector_pos = root_dir_sector_pos + total_root_sectors;
 
   return res;
 }

@@ -11,6 +11,7 @@
 #include <stdint.h>
 
 static struct paging_chunk *kernel_chunk = 0;
+
 void kmain()
 {
   terminal_initialize();
@@ -41,9 +42,11 @@ void kmain()
   // Enable the system interrupts
   enable_interrupts();
 
-  struct file_descriptor *fd = fopen("0:/hello.txt", "r");
+  struct file_descriptor *fd = fopen("0:/test_dir/hello.txt", "r");
   if (fd) {
     print("We opened hello.txt!!!\n");
+  } else {
+    print("Can't open hello.txt\n");
   }
   while (1) {}
 }
