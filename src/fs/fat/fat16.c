@@ -141,8 +141,10 @@ void *fat16_open(struct disk *disk, struct path_part *path, file_mode mode);
 size_t fat16_read(struct disk *disk, void *descriptor, uint32_t size, uint32_t nmemb, char *out_ptr);
 int fat16_seek(void *private, uint32_t offset, file_seek_mode seek_mode);
 int fat16_stat(struct disk *disk, void *private, struct file_stat *stat);
+int fat16_close(void *private);
 
-struct filesystem fat16_fs = {.resolve = fat16_resolve, .open = fat16_open, .read = fat16_read, .seek = fat16_seek, .stat = fat16_stat};
+struct filesystem fat16_fs =
+    {.resolve = fat16_resolve, .open = fat16_open, .read = fat16_read, .seek = fat16_seek, .stat = fat16_stat, .close = fat16_close};
 
 // Private prototypes
 static int fat16_read_internal(const struct disk *disk, int starting_cluster, int offset, int total, void *out);
@@ -719,5 +721,17 @@ int fat16_stat(struct disk *disk, void *private, struct file_stat *stat)
   if (ritem->attribute & FAT_FILE_READ_ONLY) {
     stat->flags |= FILE_STAT_RO;
   }
+  return 0;
+}
+
+static void fat16_free_file_descriptor(struct fat_file_descriptor *desc)
+{
+  fat16_fat_item_free(desc->item);
+  kfree(desc);
+}
+
+int fat16_close(void *private)
+{
+  fat16_free_file_descriptor((struct fat_file_descriptor *)private);
   return 0;
 }
