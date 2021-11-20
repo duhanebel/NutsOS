@@ -139,8 +139,9 @@ struct fat_private {
 int fat16_resolve(struct disk *disk);
 void *fat16_open(struct disk *disk, struct path_part *path, file_mode mode);
 size_t fat16_read(struct disk *disk, void *descriptor, uint32_t size, uint32_t nmemb, char *out_ptr);
+int fat16_seek(void *private, uint32_t offset, file_seek_mode seek_mode);
 
-struct filesystem fat16_fs = {.resolve = fat16_resolve, .open = fat16_open, .read = fat16_read};
+struct filesystem fat16_fs = {.resolve = fat16_resolve, .open = fat16_open, .read = fat16_read, .fseek = fat16_seek};
 
 // Private prototypes
 static int fat16_read_internal(const struct disk *disk, int starting_cluster, int offset, int total, void *out);
@@ -640,18 +641,64 @@ void *fat16_open(struct disk *disk, struct path_part *path, file_mode mode)
 
 size_t fat16_read(struct disk *disk, void *descriptor, uint32_t size, uint32_t nmemb, char *out_ptr)
 {
-  int res = 0;
+  int read = 0;
   struct fat_file_descriptor *fat_desc = descriptor;
   struct fat_directory_item *item = fat_desc->item->item;
   int offset = fat_desc->pos;
+  // Do we have enough ?
+
+
   while (nmemb--) {
+    // Do we have enough to read?
+    if (size > item->filesize - offset) {
+      return read;
+    }
+
     if (ISERR(fat16_read_internal(disk, item->low_16_bits_first_cluster, offset, size, out_ptr))) {
-      return res;
+      return read;
     }
 
     out_ptr += size;
     offset += size;
+    read++;
   }
 
-  return nmemb;
+  return read;
+}
+
+int fat16_seek(void *private, uint32_t offset, file_seek_mode seek_mode)
+{
+  struct fat_file_descriptor *desc = private;
+  struct fat_item *desc_item = desc->item;
+  if (desc_item->type != fat_type_file) {
+    return -EINVARG;
+  }
+
+  struct fat_directory_item *ritem = desc_item->item;
+
+  switch (seek_mode) {
+  case SEEK_SET:
+    if (offset >= ritem->filesize) {
+      return -EIO;
+    }
+    desc->pos = offset;
+    break;
+
+  case SEEK_END:
+    return -1;
+    break;
+
+  case SEEK_CUR:
+    if (desc->pos + offset >= ritem->filesize) {
+      return -EIO;
+    }
+    desc->pos += offset;
+    break;
+
+  default:
+    return -EINVARG;
+    break;
+  }
+
+  return EOK;
 }
