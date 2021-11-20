@@ -158,3 +158,17 @@ struct file_descriptor *fopen(const char *filename, const char *mode_str)
 
   return fdesc;
 }
+
+size_t fread(void *ptr, uint32_t size, uint32_t nmemb, int fd)
+{
+  if (size == 0 || nmemb == 0 || fd < 1) {
+    return -EINVARG;
+  }
+
+  struct file_descriptor *desc = file_get_descriptor(fd);
+  if (!desc) {
+    return -EINVARG;
+  }
+
+  return desc->filesystem->read(desc->disk, desc->private, size, nmemb, (char *)ptr);
+}

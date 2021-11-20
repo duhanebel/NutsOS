@@ -27,7 +27,7 @@ all: ./bin/boot.bin ./bin/kernel.bin
 	sudo mount -t vfat bin/os.bin /mnt/ && sudo cp -r bootimg-files/* /mnt/ && sudo umount /mnt
 
 run: all
-	qemu-system-x86_64 -hda bin/os.bin
+	DISPLAY=host.docker.internal:0 qemu-system-i386 -hda bin/os.bin
 
 debug: all
 	gdb -ex "set confirm off" -ex "set pagination off" -ex "add-symbol-file build/kernelfull.o 0x100000" -ex "target remote | qemu-system-i386 -hda ./bin/os.bin -S -gdb stdio"

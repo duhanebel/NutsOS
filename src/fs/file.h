@@ -2,6 +2,8 @@
 #define FILE_H
 
 #include "path_parser.h"
+#include <stddef.h>
+#include <stdint.h>
 
 typedef enum
 {
@@ -22,11 +24,13 @@ struct disk;
 
 typedef void *(*fs_open_function_t)(struct disk *disk, struct path_part *path, file_mode mode);
 typedef int (*fs_resolve_function_t)(struct disk *disk);
+typedef size_t (*fs_read_function_t)(struct disk *disk, void *private, uint32_t size, uint32_t nmemb, char *out);
 
 struct filesystem {
   // Filesystem should return zero from resolve if the provided disk is using its filesystem
   fs_resolve_function_t resolve;
   fs_open_function_t open;
+  fs_read_function_t read;
 
   char name[20];
 };
@@ -48,6 +52,7 @@ struct file_descriptor {
 void fs_init();
 file_mode file_mode_from_string(const char *str);
 struct file_descriptor *fopen(const char *filename, const char *mode_str);
+size_t fread(void *ptr, uint32_t size, uint32_t nmemb, int fd);
 int fs_insert_filesystem(struct filesystem *filesystem);
 struct filesystem *fs_resolve(struct disk *disk);
 

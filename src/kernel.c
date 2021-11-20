@@ -12,6 +12,12 @@
 
 static struct paging_chunk *kernel_chunk = 0;
 
+void panic(const char *msg)
+{
+  print(msg);
+  while (1) {}
+}
+
 void kmain()
 {
   terminal_initialize();
@@ -46,6 +52,10 @@ void kmain()
   struct file_descriptor *fd = fopen("0:/test_dir/hello.txt", "r");
   if (fd) {
     print("We opened hello.txt!!!\n");
+    char buf[14];
+    fread(buf, 13, 1, fd->index);
+    buf[13] = 0x00;
+    print(buf);
   } else {
     print("Can't open hello.txt\n");
   }
