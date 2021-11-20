@@ -52,10 +52,14 @@ void kmain()
   struct file_descriptor *fd = fopen("0:/test_dir/hello.txt", "r");
   if (fd) {
     print("We opened hello.txt!!!\n");
-    char buf[14];
-    fread(buf, 13, 1, fd->index);
-    buf[13] = 0x00;
+    struct file_stat stat;
+    fstat(fd->index, &stat);
+
+    char *buf = kzalloc(stat.filesize);
+    fread(buf, stat.filesize, 1, fd->index);
+    buf[stat.filesize] = 0x00;
     print(buf);
+    kfree(buf);
   } else {
     print("Can't open hello.txt\n");
   }

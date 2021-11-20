@@ -20,20 +20,31 @@ typedef enum
   FILE_MODE_INVALID
 } file_mode;
 
+typedef enum
+{
+  FILE_STAT_RO
+} file_stat_flags;
+
+struct file_stat {
+  file_stat_flags flags;
+  uint32_t filesize;
+};
+
 struct disk;
 
 typedef void *(*fs_open_function_t)(struct disk *disk, struct path_part *path, file_mode mode);
 typedef int (*fs_resolve_function_t)(struct disk *disk);
 typedef size_t (*fs_read_function_t)(struct disk *disk, void *private, uint32_t size, uint32_t nmemb, char *out);
 typedef int (*fs_seek_function_t)(void *private, uint32_t offset, file_seek_mode seek_mode);
-
+typedef int (*fs_stat_function_t)(struct disk *disk, void *private, struct file_stat *stat);
 
 struct filesystem {
   // Filesystem should return zero from resolve if the provided disk is using its filesystem
   fs_resolve_function_t resolve;
   fs_open_function_t open;
   fs_read_function_t read;
-  fs_seek_function_t fseek;
+  fs_seek_function_t seek;
+  fs_stat_function_t stat;
 
   char name[20];
 };
@@ -57,6 +68,8 @@ file_mode file_mode_from_string(const char *str);
 struct file_descriptor *fopen(const char *filename, const char *mode_str);
 size_t fread(void *ptr, uint32_t size, uint32_t nmemb, int fd);
 int fseek(int fd, int offset, file_seek_mode mode);
+int fstat(int fd, struct file_stat *stat);
+
 int fs_insert_filesystem(struct filesystem *filesystem);
 struct filesystem *fs_resolve(struct disk *disk);
 

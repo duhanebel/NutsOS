@@ -175,14 +175,20 @@ size_t fread(void *ptr, uint32_t size, uint32_t nmemb, int fd)
 
 int fseek(int fd, int offset, file_seek_mode mode)
 {
-  int res = 0;
   struct file_descriptor *desc = file_get_descriptor(fd);
   if (!desc) {
-    res = -EIO;
-    goto out;
+    return -EIO;
   }
 
-  res = desc->filesystem->fseek(desc->private, offset, mode);
-out:
-  return res;
+  return desc->filesystem->seek(desc->private, offset, mode);
+}
+
+int fstat(int fd, struct file_stat *stat)
+{
+  struct file_descriptor *desc = file_get_descriptor(fd);
+  if (!desc) {
+    return -EIO;
+  }
+
+  return desc->filesystem->stat(desc->disk, desc->private, stat);
 }
