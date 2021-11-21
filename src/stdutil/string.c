@@ -1,4 +1,5 @@
 #include "string.h"
+#include <stdarg.h>
 
 #define ASCII_TERM  0
 #define ASCII_HTAB  9
@@ -123,4 +124,34 @@ char *rtrim(char *s)
 char *trim(char *s)
 {
   return ltrim(rtrim(s));
+}
+
+int sprintf(char *str, const char *fmt, ...)
+{
+  va_list args;
+  va_start(args, fmt);
+
+  int count = 0;
+  while (*fmt) {
+    if (*fmt == '%') {
+      fmt++;
+      switch (*fmt) {
+      case 's':
+        char *token = va_arg(args, char *);
+        strcpy(str, token);
+        str += strlen(token);
+        break;
+      case '%': // literal %
+        *str++ = '%';
+        break;
+      }
+    } else {
+      *str++ = *fmt;
+    }
+
+    fmt++;
+    count++;
+  }
+  va_end(args);
+  return count;
 }

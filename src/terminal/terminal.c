@@ -54,7 +54,7 @@ void print(const char *str)
   }
 }
 
-void kprintf(const char *fmt, ...)
+void printf(const char *fmt, ...)
 {
   va_list args;
   va_start(args, fmt);
@@ -77,3 +77,4 @@ void kprintf(const char *fmt, ...)
 
   va_end(args);
 }
+

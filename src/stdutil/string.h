@@ -19,4 +19,6 @@ char tolower(char s);
 char *ltrim(char *s);
 char *rtrim(char *s);
 char *trim(char *s);
+
+int sprintf(char *str, const char *format, ...);
 #endif
