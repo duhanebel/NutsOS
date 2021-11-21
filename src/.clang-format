@@ -4,6 +4,8 @@ IndentWidth: 2
 TabWidth: 2
 MaxEmptyLinesToKeep: 2
 
+ReflowComments: false
+
 AlignAfterOpenBracket: Align
 AllowAllArgumentsOnNextLine: false
 AllowAllParametersOfDeclarationOnNextLine: false

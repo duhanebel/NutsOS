@@ -7,6 +7,7 @@ size_t strlen(const char *str);
 size_t strnlen(const char *str, size_t max);
 size_t strnlent(const char *str, int max, char term);
 char *strcpy(char *dest, const char *src);
+char *strncpy(char *dest, const char *src, int size);
 int strncmp(const char *s1, const char *s2, int n);
 int istrncmp(const char *s1, const char *s2, int n);
 

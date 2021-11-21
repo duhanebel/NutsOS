@@ -65,7 +65,7 @@ gdt_code:     ; CS SHOULD POINT TO THIS
     dw 0      ; Base first 0-15 bits
     db 0      ; Base 16-23 bits
     db 0x9a   ; Access byte - executable code, kernel privilege
-    db 11001111b ; High 4 bit flags and the low 4 bit flags
+    db 11001111b ; High 4 bit flags and the low 4 bit segment 16-19 bits
     db 0        ; Base 24-31 bits
 
 ; data segment - offset 0x10, size: 6bytes
@@ -74,7 +74,7 @@ gdt_data:      ; DS, SS, ES, FS, GS
     dw 0      ; Base first 0-15 bits
     db 0      ; Base 16-23 bits
     db 0x92   ; Access byte - r/w code, kernel privilege
-    db 11001111b ; High 4 bit flags and the low 4 bit flags
+    db 11001111b ; High 4 bit flags and the low 4 bit segment 16-19 bits
     db 0        ; Base 24-31 bits
 
 ; end of the entries

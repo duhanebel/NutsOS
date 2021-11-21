@@ -61,6 +61,17 @@ struct paging_chunk *paging_chunk_new(int dir_entries, int page_entries, uint8_t
   return chunk;
 }
 
+void paging_chunk_free(struct paging_chunk *chunk)
+{
+  for (int i = 0; i < PAGING_TOTAL_DIR_ENTRIES; i++) {
+    uint32_t entry = chunk->directory_entry[i];
+    kfree(PAGING_ENTRY_GET_POINTER(entry));
+  }
+
+  kfree(chunk->directory_entry);
+  kfree(chunk);
+}
+
 void paging_switch(paging_dir *directory)
 {
   paging_load_directory(directory);
@@ -75,6 +86,14 @@ paging_dir *paging_chunk_get_directory(struct paging_chunk *chunk)
 bool paging_is_aligned(void *addr)
 {
   return ((uint32_t)addr % PAGING_PAGE_SIZE) == 0;
+}
+
+void *paging_align_address(void *ptr) {
+  if ((uint32_t)ptr % PAGING_PAGE_SIZE) {
+    return (void *)((uint32_t)ptr + PAGING_PAGE_SIZE - ((uint32_t)ptr % PAGING_PAGE_SIZE));
+  }
+
+  return ptr;
 }
 
 // Get page directory and entry relative to virtual_address (must be PAGE_SIZE aligned)
@@ -113,4 +132,22 @@ int paging_set(paging_dir *directory, void *virt, paging_entry pdesc)
   table[table_index] = pdesc;
 
   return 0;
+}
+
+int paging_map_to(uint32_t *directory, void *virt, void *phys, void *phys_end, int flags)
+{
+  // Make sure addresses are page aligned
+  if ((uint32_t)virt % PAGING_PAGE_SIZE || (uint32_t)phys % PAGING_PAGE_SIZE || (uint32_t)phys_end % PAGING_PAGE_SIZE) {
+    return -EINVARG;
+  }
+
+  // Make sure the physical address interval is positive
+  if ((uint32_t)phys_end < (uint32_t)phys) {
+    return -EINVARG;
+  }
+
+  uint32_t total_bytes = phys_end - phys;
+  int total_pages = total_bytes / PAGING_PAGE_SIZE;
+
+  return paging_map_range(directory, virt, phys, total_pages, flags);
 }

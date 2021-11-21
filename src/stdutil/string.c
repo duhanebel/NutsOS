@@ -95,6 +95,12 @@ char *strcpy(char *dest, const char *src)
   return dest;
 }
 
+char *strncpy(char *dest, const char *src, int size)
+{
+  while (((*(dest++) = *(src++)) && size--) != ASCII_TERM) {}
+  return dest;
+}
+
 char tolower(char s)
 {
   s = (s >= ASCII_A && s <= ASCII_Z) ? (s + 32) : s;

@@ -1,11 +1,15 @@
 #include "kernel.h"
+#include "config.h"
 #include "disk/disk.h"
 #include "disk/stream.h"
 #include "fs/file.h"
+#include "gdt/gdt.h"
 #include "idt/idt.h"
 #include "io/io.h"
 #include "memory/heap/kheap.h"
+#include "memory/memory.h"
 #include "memory/paging/paging.h"
+#include "task/tss.h"
 #include "terminal/terminal.h"
 #include <stddef.h>
 #include <stdint.h>
@@ -18,13 +22,26 @@ void panic(const char *msg)
   while (1) {}
 }
 
+#define GDT_SEGMENTS_COUNT 6
+struct tss tss;
+struct gdt_raw gdt_raw[GDT_SEGMENTS_COUNT];
+struct gdt gdt[GDT_SEGMENTS_COUNT] = {                                                                                //9a, 92, f8, f2, E9
+    {.base = 0x00, .limit = 0x00, .type = 0x00},                                                                      // NULL Segment
+    {.base = 0x00, .limit = 0xffffffff, .type = GDT_SEG_RW(1) | GDT_SEG_EX(1) | GDT_SEG_DESC(1) | GDT_SEG_PRES(1)},   // Kernel code segment
+    {.base = 0x00, .limit = 0xffffffff, .type = GDT_SEG_RW(1) | GDT_SEG_DESC(1) | GDT_SEG_PRES(1)},                   // Kernel data segment
+    {.base = 0x00, .limit = 0xffffffff, .type = GDT_SEG_DESC(1) | GDT_SEG_EX(1) | GDT_SEG_PRIV(3) | GDT_SEG_PRES(1)}, // User code segment
+    {.base = 0x00, .limit = 0xffffffff, .type = GDT_SEG_DESC(1) | GDT_SEG_RW(1) | GDT_SEG_PRIV(3) | GDT_SEG_PRES(1)}, // User data segment
+    {.base = (uint32_t)&tss, .limit = sizeof(tss), .type = 0xE9}};
+
+
 void kmain()
 {
   terminal_initialize();
-  char buf[200];
-  print("Hello world!\ntest\n\n");
-  sprintf(buf, "dddee- %s%%%s\n", "Jellow!", "Test!");
-  print(buf);
+
+  memset(gdt_raw, 0x00, sizeof(gdt_raw));
+  get_raw_gdt_struct(gdt_raw, gdt, GDT_SEGMENTS_COUNT);
+  gdt_load(gdt_raw, sizeof(gdt));
+
   // Initialize the heap
   kheap_init();
 
@@ -36,6 +53,14 @@ void kmain()
 
   // Initialize the interrupt descriptor table
   idt_init();
+
+  // Setup the TSS
+  memset(&tss, 0x00, sizeof(tss));
+  tss.esp0 = 0x600000;
+  tss.ss0 = KERNEL_DATA_SELECTOR;
+
+  // Load the TSS
+  tss_load(NUTSOS_GDT_TSS_OFFSET);
 
   // Setup paging
   kernel_chunk = paging_chunk_new(PAGING_TOTAL_DIR_ENTRIES,

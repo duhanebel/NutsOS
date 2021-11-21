@@ -29,6 +29,10 @@ struct paging_chunk {
 // Creates a new paging directory containing dir_entries entries, each with
 // page_entries describing PAGING_PAGE_SIZE bytes of RAM
 struct paging_chunk *paging_chunk_new(int dir_entries, int page_entries, uint8_t flags);
+
+// Delete a paging chunk
+void paging_chunk_free(struct paging_chunk *chunk);
+
 // Switches the paging directory in use
 void paging_switch(paging_dir *directory);
 
@@ -40,8 +44,12 @@ int paging_set(paging_dir *directory, void *virt, paging_entry pdesc);
 
 // Returns true if addr is aligned to PAGING_PAGE_SIZE
 bool paging_is_aligned(void *addr);
+void *paging_align_address(void *ptr);
 
 // Returns paging_dir of a paging_chunk
 paging_dir *paging_chunk_get_directory(struct paging_chunk *chunk);
+
+int paging_map_to(uint32_t *directory, void *virt, void *phys, void *phys_end, int flags);
+
 
 #endif
