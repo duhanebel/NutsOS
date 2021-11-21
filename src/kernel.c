@@ -21,7 +21,8 @@ void panic(const char *msg)
 void kmain()
 {
   terminal_initialize();
-  print("Hello world!\ntest");
+  print("Hello world!\ntest\n\n");
+  kprintf("dddee- %s%%%s\n", "Jellow!", "Test!");
 
   // Initialize the heap
   kheap_init();

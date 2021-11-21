@@ -6,5 +6,5 @@
 
 void terminal_initialize();
 void print(const char *str);
-
+void kprintf(const char *fmt, ...);
 #endif

@@ -1,6 +1,7 @@
 #include "terminal.h"
 #include "stdutil/string.h"
 
+#include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -51,4 +52,28 @@ void print(const char *str)
   for (int i = 0; i < len; i++) {
     terminal_writechar(str[i], 15);
   }
+}
+
+void kprintf(const char *fmt, ...)
+{
+  va_list args;
+  va_start(args, fmt);
+
+  for (const char *ptr = fmt; *ptr != '\0'; ptr++) {
+    if (*ptr == '%') {
+      ptr++;
+      switch (*ptr) {
+      case 's':
+        print(va_arg(args, char *));
+        break;
+      case '%': // literal %
+        terminal_writechar('%', 15);
+        break;
+      }
+    } else {
+      terminal_writechar(*ptr, 15);
+    }
+  }
+
+  va_end(args);
 }
