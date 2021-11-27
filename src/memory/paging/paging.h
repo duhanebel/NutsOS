@@ -49,7 +49,17 @@ void *paging_align_address(void *ptr);
 // Returns paging_dir of a paging_chunk
 paging_dir *paging_chunk_get_directory(struct paging_chunk *chunk);
 
+
 int paging_map_to(uint32_t *directory, void *virt, void *phys, void *phys_end, int flags);
+
+// Map count pages virt->phys with flags (page aligned)
+int paging_map_range(uint32_t *directory, void *virt, void *phys, int count, int flags);
+
+// Map a single page virt->phys with flags (page aligned)
+int paging_map(uint32_t *directory, void *virt, void *phys, int flags);
+
+// Align ptr to the next page
+void *paging_align_address(void *ptr);
 
 
 #endif

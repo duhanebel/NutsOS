@@ -6,6 +6,9 @@
 #include "memory/memory.h"
 #include "memory/paging/paging.h"
 
+extern void set_gdt_segments(uint8_t index);
+extern void task_return();
+
 // The current task that is running
 struct task *current_task = 0;
 
@@ -13,9 +16,9 @@ struct task *current_task = 0;
 struct task *task_tail = 0;
 struct task *task_head = 0;
 
-int task_init(struct task *task);
+static int task_init(struct task *task, struct process *process);
 
-struct task *task_new()
+struct task *task_new(struct process *process)
 {
   int res = 0;
   struct task *task = kzalloc(sizeof(struct task));
@@ -24,7 +27,7 @@ struct task *task_new()
     goto out;
   }
 
-  res = task_init(task);
+  res = task_init(task, process);
   if (ISERR(res)) {
     goto out;
   }
@@ -63,6 +66,7 @@ static void task_list_remove(struct task *task)
 {
   if (task->prev) {
     task->prev->next = task->next;
+    task->next->prev = task->prev;
   }
 
   if (task == task_head) {
@@ -78,17 +82,16 @@ static void task_list_remove(struct task *task)
   }
 }
 
-int task_free(struct task *task)
+void task_free(struct task *task)
 {
   paging_chunk_free(task->page_directory);
   task_list_remove(task);
 
   // Finally free the task data
   kfree(task);
-  return 0;
 }
 
-int task_init(struct task *task)
+static int task_init(struct task *task, struct process *process)
 {
   memset(task, 0, sizeof(struct task));
   // Map the entire 4GB address space to its self
@@ -99,7 +102,33 @@ int task_init(struct task *task)
 
   task->registers.ip = NUTSOS_PROGRAM_VIRTUAL_ADDRESS;
   task->registers.ss = NUTSOS_GDT_USER_DATA_OFFSET;
+  task->registers.cs = NUTSOS_GDT_USER_CODE_OFFSET;
   task->registers.esp = NUTSOS_PROGRAM_VIRTUAL_STACK_ADDRESS_START;
+  task->process = process;
 
   return 0;
+}
+
+int task_switch(struct task *task)
+{
+  current_task = task;
+  paging_switch(task->page_directory->directory_entry);
+  return 0;
+}
+
+int task_page()
+{
+  set_gdt_segments(NUTSOS_GDT_USER_DATA_OFFSET);
+  task_switch(current_task);
+  return 0;
+}
+
+void task_run_task0(struct task *task)
+{
+  if (task != task_head) {
+    panic("Can't run a first task that is not the first task!!\n");
+  }
+
+  task_switch(task);
+  task_return(task->registers);
 }

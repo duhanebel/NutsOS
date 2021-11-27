@@ -38,6 +38,7 @@ void kmain()
 {
   terminal_initialize();
 
+  // setup the GDT
   memset(gdt_raw, 0x00, sizeof(gdt_raw));
   get_raw_gdt_struct(gdt_raw, gdt, GDT_SEGMENTS_COUNT);
   gdt_load(gdt_raw, sizeof(gdt));
@@ -60,7 +61,7 @@ void kmain()
   tss.ss0 = KERNEL_DATA_SELECTOR;
 
   // Load the TSS
-  tss_load(NUTSOS_GDT_TSS_OFFSET);
+ // tss_load(NUTSOS_GDT_TSS_OFFSET);
 
   // Setup paging
   kernel_chunk = paging_chunk_new(PAGING_TOTAL_DIR_ENTRIES,

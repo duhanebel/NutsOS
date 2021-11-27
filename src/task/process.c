@@ -15,6 +15,8 @@ struct process *current_process = 0;
 
 static struct process *processes[NUTSOS_MAX_PROCESSES] = {};
 
+static int process_load_for_slot(const char *filename, struct process **out, int process_slot);
+
 static void process_init(struct process *process)
 {
   memset(process, 0, sizeof(struct process));
@@ -86,7 +88,28 @@ int process_map_memory(struct process *process)
   return res;
 }
 
-int process_load_for_slot(const char *filename, struct process **out, int process_slot)
+int process_load(const char *filename, struct process **process)
+{
+  int res = 0;
+  int process_slot = -1;
+  for (int i = 0; i < NUTSOS_MAX_PROCESSES; i++) {
+    if (processes[i] == 0) {
+      process_slot = i;
+      break;
+    }
+  }
+
+  if (process_slot < 0) {
+    res = -ENOMEM;
+    goto out;
+  }
+
+  res = process_load_for_slot(filename, process, process_slot);
+out:
+  return res;
+}
+
+static int process_load_for_slot(const char *filename, struct process **out, int process_slot)
 {
   int res = 0;
   struct task *task = 0;

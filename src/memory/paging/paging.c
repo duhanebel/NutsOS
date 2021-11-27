@@ -22,8 +22,9 @@
 // D, or the Dirty flag, if set, indicates that page has been written to.
 // 0, if PAT is supported, shall indicate the memory type. Otherwise, it must be 0.
 
-#define PAGING_ENTRY_GET_POINTER(entry) (uint32_t *)((entry)&0xFFFFF000)
-#define PAGING_ENTRY_GET_FLAGS(entry)   ((entry)&0x00000FFF)
+#define PAGING_ENTRY_GET_POINTER(entry)      ((void *)((uint32_t)(entry)&0xFFFFF000))
+#define PAGING_ENTRY_SET_FLAGS(entry, flags) ((uint32_t)(entry) | (flags))
+#define PAGING_ENTRY_GET_FLAGS(entry)        ((uint32_t)(entry)&0x00000FFF)
 
 // Defined in paging.asm
 void paging_load_directory(paging_dir *directory);
@@ -88,12 +89,42 @@ bool paging_is_aligned(void *addr)
   return ((uint32_t)addr % PAGING_PAGE_SIZE) == 0;
 }
 
-void *paging_align_address(void *ptr) {
+// Align address to the next page
+void *paging_align_address(void *ptr)
+{
   if ((uint32_t)ptr % PAGING_PAGE_SIZE) {
-    return (void *)((uint32_t)ptr + PAGING_PAGE_SIZE - ((uint32_t)ptr % PAGING_PAGE_SIZE));
+    return (void *)((uint32_t)ptr / PAGING_PAGE_SIZE + PAGING_PAGE_SIZE);
   }
 
   return ptr;
+}
+
+// Maps a single page phys to virt address on a dir (with flags)
+// Addresses need to be page aligned
+int paging_map(uint32_t *directory, void *virt, void *phys, int flags)
+{
+  // Make sure addresses are aligned
+  if (!paging_is_aligned(virt) || !paging_is_aligned(phys)) {
+    return -EINVARG;
+  }
+
+  return paging_set(directory, virt, PAGING_ENTRY_SET_FLAGS(phys, flags));
+}
+
+// Maps count phys addresses to virt addresses
+// Addresses need to be page aligned
+int paging_map_range(uint32_t *directory, void *virt, void *phys, int count, int flags)
+{
+  int res = 0;
+  for (int i = 0; i < count; i++) {
+    res = paging_map(directory, virt, phys, flags);
+    if (res == 0)
+      break;
+    virt += PAGING_PAGE_SIZE;
+    phys += PAGING_PAGE_SIZE;
+  }
+
+  return res;
 }
 
 // Get page directory and entry relative to virtual_address (must be PAGE_SIZE aligned)

@@ -3,21 +3,24 @@
 
 #include "config.h"
 #include "memory/paging/paging.h"
+#include "task/process.h"
 
 struct registers {
-  uint32_t edi;
-  uint32_t esi;
-  uint32_t ebp;
-  uint32_t ebx;
-  uint32_t edx;
-  uint32_t ecx;
-  uint32_t eax;
+// restore_general_purpose_registers managed
+  uint32_t edi; // 0
+  uint32_t esi; // 4
+  uint32_t ebp; // 8
+  uint32_t ebx; // 12
+  uint32_t edx; // 16
+  uint32_t ecx; // 20
+  uint32_t eax; // 24
 
-  uint32_t ip;
-  uint32_t cs;
-  uint32_t flags;
-  uint32_t esp;
-  uint32_t ss;
+// task_return managed
+  uint32_t ip;    // 28
+  uint32_t cs;    // 32
+  uint32_t flags; // 36
+  uint32_t esp;   // 40
+  uint32_t ss;    // 44
 };
 
 struct task {
@@ -29,6 +32,9 @@ struct task {
   // The registers of the task when the task is not running
   struct registers registers;
 
+  // The process of the task
+  struct process *process;
+
   // The next task in the linked list
   struct task *next;
 
@@ -36,10 +42,10 @@ struct task {
   struct task *prev;
 };
 
-struct task *task_new();
+struct task *task_new(struct process *process);
 struct task *task_current();
 struct task *task_get_next();
-int task_free(struct task *task);
+void task_free(struct task *task);
 
 
 #endif
