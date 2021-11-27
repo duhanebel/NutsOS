@@ -6,6 +6,8 @@ struct tss {
   uint32_t link;
   uint32_t esp0; // Kernel stack pointer
   uint32_t ss0;  // Kernel stack segment
+
+  // Mostly ignored as multitasking is implemented in software
   uint32_t esp1;
   uint32_t esp2;
   uint32_t ss2;
@@ -30,5 +32,5 @@ struct tss {
   uint32_t iopb;
 } __attribute__((packed));
 
-void tss_load(int tss_segment);
+extern void tss_load(int tss_segment);
 #endif

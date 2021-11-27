@@ -25,7 +25,7 @@ void panic(const char *msg)
 #define GDT_SEGMENTS_COUNT 6
 struct tss tss;
 struct gdt_raw gdt_raw[GDT_SEGMENTS_COUNT];
-struct gdt gdt[GDT_SEGMENTS_COUNT] = {                                                                                //9a, 92, f8, f2, E9
+struct gdt gdt[GDT_SEGMENTS_COUNT] = {
     {.base = 0x00, .limit = 0x00, .type = 0x00},                                                                      // NULL Segment
     {.base = 0x00, .limit = 0xffffffff, .type = GDT_SEG_RW(1) | GDT_SEG_EX(1) | GDT_SEG_DESC(1) | GDT_SEG_PRES(1)},   // Kernel code segment
     {.base = 0x00, .limit = 0xffffffff, .type = GDT_SEG_RW(1) | GDT_SEG_DESC(1) | GDT_SEG_PRES(1)},                   // Kernel data segment
@@ -33,15 +33,15 @@ struct gdt gdt[GDT_SEGMENTS_COUNT] = {                                          
     {.base = 0x00, .limit = 0xffffffff, .type = GDT_SEG_DESC(1) | GDT_SEG_RW(1) | GDT_SEG_PRIV(3) | GDT_SEG_PRES(1)}, // User data segment
     {.base = (uint32_t)&tss, .limit = sizeof(tss), .type = 0xE9}};
 
-
 void kmain()
 {
   terminal_initialize();
 
+  struct gdt *thegdt = gdt;
   // setup the GDT
   memset(gdt_raw, 0x00, sizeof(gdt_raw));
-  get_raw_gdt_struct(gdt_raw, gdt, GDT_SEGMENTS_COUNT);
-  gdt_load(gdt_raw, sizeof(gdt));
+  get_raw_gdt_struct(gdt_raw, thegdt, GDT_SEGMENTS_COUNT);
+  gdt_load(gdt_raw, sizeof(gdt_raw));
 
   // Initialize the heap
   kheap_init();
@@ -61,7 +61,7 @@ void kmain()
   tss.ss0 = KERNEL_DATA_SELECTOR;
 
   // Load the TSS
- // tss_load(NUTSOS_GDT_TSS_OFFSET);
+  tss_load(NUTSOS_GDT_TSS_OFFSET);
 
   // Setup paging
   kernel_chunk = paging_chunk_new(PAGING_TOTAL_DIR_ENTRIES,

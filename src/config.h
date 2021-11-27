@@ -27,13 +27,14 @@
 #define NUTSOS_PROGRAM_VIRTUAL_ADDRESS             0x400000
 #define NUTSOS_USER_PROGRAM_STACK_SIZE             1024 * 16
 #define NUTSOS_PROGRAM_VIRTUAL_STACK_ADDRESS_START 0x3FF000
-#define NUTSOS_PROGRAM_VIRTUAL_STACK_ADDRESS_END   NUTSOS_PROGRAM_VIRTUAL_STACK_ADDRESS_START - NUTSOS_USER_PROGRAM_STACK_SIZE
+#define NUTSOS_PROGRAM_VIRTUAL_STACK_ADDRESS_END   (NUTSOS_PROGRAM_VIRTUAL_STACK_ADDRESS_START - NUTSOS_USER_PROGRAM_STACK_SIZE)
 
 // Memory
-#define NUTSOS_GDT_KERNEL_CODE_OFFSET              1 * sizeof(struct gdt)
-#define NUTSOS_GDT_KERNEL_DATA_OFFSET              2 * sizeof(struct gdt)
-#define NUTSOS_GDT_USER_CODE_OFFSET                3 * sizeof(struct gdt)
-#define NUTSOS_GDT_USER_DATA_OFFSET                4 * sizeof(struct gdt)
-#define NUTSOS_GDT_TSS_OFFSET                      5 * sizeof(struct gdt)
+#define NUTSOS_GDT_ENTRY_SIZE                      (2 * sizeof(uint32_t))
+#define NUTSOS_GDT_KERNEL_CODE_OFFSET              (1 * NUTSOS_GDT_ENTRY_SIZE)
+#define NUTSOS_GDT_KERNEL_DATA_OFFSET              (2 * NUTSOS_GDT_ENTRY_SIZE)
+#define NUTSOS_GDT_USER_CODE_OFFSET                (3 * NUTSOS_GDT_ENTRY_SIZE)
+#define NUTSOS_GDT_USER_DATA_OFFSET                (4 * NUTSOS_GDT_ENTRY_SIZE)
+#define NUTSOS_GDT_TSS_OFFSET                      (5 * NUTSOS_GDT_ENTRY_SIZE)
 
 #endif
