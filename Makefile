@@ -1,15 +1,17 @@
 SHELL = /bin/bash
 
+PROGRAMS = $(shell find programs/ -maxdepth 1 -type d ! -name 'programs')
+
 ASM_SRC = $(shell find src -type f -name '*.asm' ! -name boot.asm)
 ASM_OBJ = $(patsubst src/%.asm, build/%.asm.o, $(ASM_SRC))
 C_SRC = $(shell find src -type f -name '*.c')
 C_OBJ = $(patsubst src/%.c, build/%.o, $(C_SRC))
 OBJ_FILES = $(ASM_OBJ) $(C_OBJ)
 
-$(info $$C_SRC is [${C_SRC}])
-$(info $$C_OBJ is [${C_OBJ}])
-$(info $$OBJ_FILES is [${OBJ_FILES}])
-
+#$(info $$C_SRC is [${C_SRC}])
+#$(info $$C_OBJ is [${C_OBJ}])
+#$(info $$OBJ_FILES is [${OBJ_FILES}])
+$(info $$PROGRAMS is [${PROGRAMS}])
 INCLUDES = -I./src
 FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 
@@ -18,13 +20,17 @@ FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign
 CC=i686-elf-gcc
 LD=i686-elf-ld
 
-all: ./bin/boot.bin ./bin/kernel.bin
+all: ./bin/boot.bin ./bin/kernel.bin $(PROGRAMS)
 	rm -rf ./bin/os.bin
 	dd if=./bin/boot.bin >> ./bin/os.bin
 	dd if=./bin/kernel.bin >> ./bin/os.bin
 	dd if=/dev/zero bs=1048576 count=16 >> ./bin/os.bin
 	# Copy a test file inside the fat16 image
-	sudo mount -t vfat bin/os.bin /mnt/ && sudo cp -r bootimg-files/* /mnt/ && sudo umount /mnt
+	sudo mount -t vfat bin/os.bin /mnt/
+	sudo mkdir /mnt/bin/
+	sudo cp -r bootimg-files/* /mnt/ 
+	sudo cp programs/*/bin/*.bin /mnt/bin
+	sudo umount /mnt
 
 run: all
 	DISPLAY=host.docker.internal:0 qemu-system-i386 -hda bin/os.bin
@@ -38,6 +44,11 @@ debug: all
 
 ./bin/boot.bin: ./src/boot/boot.asm
 	nasm -f bin ./src/boot/boot.asm -o ./bin/boot.bin
+
+$(PROGRAMS):
+	$(MAKE) -C $@
+
+.PHONY: $(PROGRAMS)
 
 $(ASM_OBJ): build/%.asm.o: src/%.asm
 	mkdir -p $(@D)
