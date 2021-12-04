@@ -88,9 +88,9 @@ gdt_descriptor:
 load32:
     mov eax, 1
     mov ecx, 100 
-    mov edi, 0x0100000
+    mov edi, 0x00100000
     call ata_lba_read ; read the kernel from disk
-    jmp CODE_SEG:0x0100000 ; jump to the kernel first instruction
+    jmp CODE_SEG:0x00100000 ; jump to the kernel first instruction
 
 ; load data from disk to ram
 ; eax - start sector

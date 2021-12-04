@@ -2,6 +2,7 @@
 #include "config.h"
 #include "disk/disk.h"
 #include "disk/stream.h"
+#include "error.h"
 #include "fs/file.h"
 #include "gdt/gdt.h"
 #include "idt/idt.h"
@@ -9,6 +10,8 @@
 #include "memory/heap/kheap.h"
 #include "memory/memory.h"
 #include "memory/paging/paging.h"
+#include "task/process.h"
+#include "task/task.h"
 #include "task/tss.h"
 #include "terminal/terminal.h"
 #include <stddef.h>
@@ -75,21 +78,27 @@ void kmain()
   enable_paging();
 
   // Enable the system interrupts
-  enable_interrupts();
+  //enable_interrupts();
 
-  struct file_descriptor *fd = fopen("0:/test_dir/hello.txt", "r");
-  if (fd) {
-    print("We opened hello.txt!!!\n");
-    struct file_stat stat;
-    fstat(fd->index, &stat);
+  // struct file_descriptor *fd = fopen("0:/test_dir/hello.txt", "r");
+  // if (fd) {
+  //   print("We opened hello.txt!!!\n");
+  //   struct file_stat stat;
+  //   fstat(fd->index, &stat);
 
-    char *buf = kzalloc(stat.filesize);
-    fread(buf, stat.filesize, 1, fd->index);
-    buf[stat.filesize] = 0x00;
-    print(buf);
-    kfree(buf);
-  } else {
-    print("Can't open hello.txt\n");
+  //   char *buf = kzalloc(stat.filesize);
+  //   fread(buf, stat.filesize, 1, fd->index);
+  //   buf[stat.filesize] = 0x00;
+  //   print(buf);
+  //   kfree(buf);
+  // } else {
+  //   print("Can't open hello.txt\n");
+  // }
+  struct process *process = NULL;
+  int res = process_load("0:/bin/empty.bin", &process);
+  if (ISERR(res)) {
+    panic("Unable to load first task!");
   }
+  task_run_as_task0(process->task);
   while (1) {}
 }

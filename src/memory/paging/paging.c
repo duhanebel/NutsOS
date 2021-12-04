@@ -27,7 +27,7 @@
 #define PAGING_ENTRY_GET_FLAGS(entry)        ((uint32_t)(entry)&0x00000FFF)
 
 // Defined in paging.asm
-void paging_load_directory(paging_dir *directory);
+extern void paging_load_directory(paging_dir *directory);
 
 // Pointer to the directory in use
 static paging_dir *current_directory = 0;
@@ -92,8 +92,9 @@ bool paging_is_aligned(void *addr)
 // Align address to the next page
 void *paging_align_address(void *ptr)
 {
-  if ((uint32_t)ptr % PAGING_PAGE_SIZE) {
-    return (void *)((uint32_t)ptr / PAGING_PAGE_SIZE + PAGING_PAGE_SIZE);
+  uint32_t reminder = ((uint32_t)ptr % PAGING_PAGE_SIZE);
+  if (reminder) {
+    return (void *)((uint32_t)ptr - reminder + PAGING_PAGE_SIZE);
   }
 
   return ptr;
@@ -118,8 +119,9 @@ int paging_map_range(uint32_t *directory, void *virt, void *phys, int count, int
   int res = 0;
   for (int i = 0; i < count; i++) {
     res = paging_map(directory, virt, phys, flags);
-    if (res == 0)
+    if (ISERR(res)) {
       break;
+    }
     virt += PAGING_PAGE_SIZE;
     phys += PAGING_PAGE_SIZE;
   }

@@ -28,15 +28,19 @@ all: ./bin/boot.bin ./bin/kernel.bin $(PROGRAMS)
 	# Copy a test file inside the fat16 image
 	sudo mount -t vfat bin/os.bin /mnt/
 	sudo mkdir /mnt/bin/
-	sudo cp -r bootimg-files/* /mnt/ 
-	sudo cp programs/*/bin/*.bin /mnt/bin
+	sudo cp -vr bootimg-files/* /mnt/ 
+	sudo cp -v programs/*/bin/*.bin /mnt/bin
 	sudo umount /mnt
 
 run: all
-	DISPLAY=host.docker.internal:0 qemu-system-i386 -hda bin/os.bin
+	DISPLAY=host.docker.internal:0 qemu-system-i386 -hda bin/os.bin -d int -no-reboot -no-shutdown
 
 debug: all
-	gdb -ex "set confirm off" -ex "set pagination off" -ex "add-symbol-file build/kernelfull.o 0x100000" -ex "target remote | qemu-system-i386 -hda ./bin/os.bin -S -gdb stdio"
+	DISPLAY=host.docker.internal:0 \
+	gdb -ex "set confirm off" \
+	    -ex "set pagination off" \
+	    -ex "add-symbol-file build/kernelfull.o 0x10000add-symbol-file build/kernelfull.o 0x1000000" \
+	    -ex "target remote | qemu-system-i386 -hda ./bin/os.bin -S -gdb stdio"
 
 ./bin/kernel.bin: $(OBJ_FILES)
 	$(LD) -g -relocatable $(OBJ_FILES) -o ./build/kernelfull.o

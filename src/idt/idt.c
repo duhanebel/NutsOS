@@ -34,11 +34,13 @@ void idt_zero()
 void idt_set(int interrupt_no, void *address)
 {
   struct idt_desc *desc = &idt_descriptors[interrupt_no];
-  desc->offset_1 = (uint32_t)address & 0x0000ffff;
+  desc->offset_1 = IDT_OFFSET_LOW(address); //(uint32_t) address & 0x0000ffff;
   desc->selector = KERNEL_CODE_SELECTOR;
   desc->unused = 0x00;
-  desc->type_attr = 0xEE;
-  desc->offset_2 = (uint32_t)address >> 16;
+
+  // 32bit interrupt, accessible from ring 3
+  desc->type_attr = IDT_ATTR_PRESENT | IDT_ATTR_INT32 | IDT_ATTR_RING(3);
+  desc->offset_2 = IDT_OFFSET_HIGH(address); //(uint32_t) address >> 16;
 }
 
 void idt_init()

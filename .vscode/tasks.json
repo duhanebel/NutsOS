@@ -4,7 +4,7 @@
         {
             "label": "start QEMU",
             "type": "shell",
-            "command": "DISPLAY=host.docker.internal:0 /usr/bin/qemu-system-i386 -hda ./bin/os.bin -s -S -daemonize",
+            "command": "DISPLAY=host.docker.internal:0 /usr/bin/qemu-system-i386 -hda ./bin/os.bin -s -S -daemonize -d int -no-reboot -no-shutdown",
             "isBackground": true,
             "runOptions": {
                 "instanceLimit": 1

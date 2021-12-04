@@ -90,7 +90,6 @@ int process_map_memory(struct process *process)
 
 int process_load(const char *filename, struct process **process)
 {
-  int res = 0;
   int process_slot = -1;
   for (int i = 0; i < NUTSOS_MAX_PROCESSES; i++) {
     if (processes[i] == 0) {
@@ -100,21 +99,18 @@ int process_load(const char *filename, struct process **process)
   }
 
   if (process_slot < 0) {
-    res = -ENOMEM;
-    goto out;
+    return -ENOMEM;
   }
 
-  res = process_load_for_slot(filename, process, process_slot);
-out:
-  return res;
+  return process_load_for_slot(filename, process, process_slot);
 }
 
 static int process_load_for_slot(const char *filename, struct process **out, int process_slot)
 {
   int res = 0;
-  struct task *task = 0;
-  struct process *process;
-  void *program_stack_ptr = 0;
+  struct task *task = NULL;
+  struct process *process = NULL;
+  void *program_stack_ptr = NULL;
 
   if (process_get(process_slot) != 0) {
     res = -ETAKEN;
@@ -152,7 +148,7 @@ static int process_load_for_slot(const char *filename, struct process **out, int
   process->task = task;
 
   res = process_map_memory(process);
-  if (res < 0) {
+  if (ISERR(res)) {
     goto out;
   }
 

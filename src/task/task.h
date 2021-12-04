@@ -46,6 +46,6 @@ struct task *task_new(struct process *process);
 struct task *task_current();
 struct task *task_get_next();
 void task_free(struct task *task);
-
+void task_run_as_task0(struct task *task);
 
 #endif

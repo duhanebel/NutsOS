@@ -94,15 +94,15 @@ void task_free(struct task *task)
 static int task_init(struct task *task, struct process *process)
 {
   memset(task, 0, sizeof(struct task));
-  // Map the entire 4GB address space to its self
+  // Give 4GB of paging to this task
   task->page_directory = paging_chunk_new(PAGING_TOTAL_DIR_ENTRIES, PAGING_TOTAL_ENTRIES_PER_TABLE, PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
   if (!task->page_directory) {
     return -EIO;
   }
 
   task->registers.ip = NUTSOS_PROGRAM_VIRTUAL_ADDRESS;
-  task->registers.ss = NUTSOS_GDT_USER_DATA_OFFSET;
-  task->registers.cs = NUTSOS_GDT_USER_CODE_OFFSET;
+  task->registers.ss = NUTSOS_GDT_USER_DATA_OFFSET | NUTSOS_GDT_PRIVILEGE_RING_3;
+  task->registers.cs = NUTSOS_GDT_USER_CODE_OFFSET | NUTSOS_GDT_PRIVILEGE_RING_3;
   task->registers.esp = NUTSOS_PROGRAM_VIRTUAL_STACK_ADDRESS_START;
   task->process = process;
 
@@ -116,14 +116,15 @@ int task_switch(struct task *task)
   return 0;
 }
 
-int task_page()
-{
-  set_gdt_segments(NUTSOS_GDT_USER_DATA_OFFSET);
-  task_switch(current_task);
-  return 0;
-}
+// int task_page()
+// {
+//   // We need to set the gdt segments
+//   set_gdt_segments(NUTSOS_GDT_USER_DATA_OFFSET | NUTSOS_GDT_PRIVILEGE_RING_3);
+//   task_switch(current_task);
+//   return 0;
+// }
 
-void task_run_task0(struct task *task)
+void task_run_as_task0(struct task *task)
 {
   if (task != task_head) {
     panic("Can't run a first task that is not the first task!!\n");
