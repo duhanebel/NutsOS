@@ -1,6 +1,7 @@
 #include "task.h"
 #include "config.h"
 #include "error.h"
+#include "idt/idt.h"
 #include "kernel.h"
 #include "memory/heap/kheap.h"
 #include "memory/memory.h"
@@ -101,8 +102,8 @@ static int task_init(struct task *task, struct process *process)
   }
 
   task->registers.ip = NUTSOS_PROGRAM_VIRTUAL_ADDRESS;
-  task->registers.ss = NUTSOS_GDT_USER_DATA_OFFSET | NUTSOS_GDT_PRIVILEGE_RING_3;
-  task->registers.cs = NUTSOS_GDT_USER_CODE_OFFSET | NUTSOS_GDT_PRIVILEGE_RING_3;
+  task->registers.ss = GDT_USER_DATA_OFFSET | GDT_PRIVILEGE_RING_3;
+  task->registers.cs = GDT_USER_CODE_OFFSET | GDT_PRIVILEGE_RING_3;
   task->registers.esp = NUTSOS_PROGRAM_VIRTUAL_STACK_ADDRESS_START;
   task->process = process;
 
@@ -131,5 +132,52 @@ void task_run_as_task0(struct task *task)
   }
 
   task_switch(task);
-  task_return(task->registers);
+  task_return(&task->registers);
+}
+
+// Store the state of the interrupt_frame into the registers of the task' struct
+void task_save_state(struct task *task, struct interrupt_frame *frame)
+{
+  task->registers.ip = frame->ip;
+  task->registers.cs = frame->cs;
+  task->registers.flags = frame->flags;
+  task->registers.esp = frame->esp;
+  task->registers.ss = frame->ss;
+  task->registers.eax = frame->eax;
+  task->registers.ebp = frame->ebp;
+  task->registers.ebx = frame->ebx;
+  task->registers.ecx = frame->ecx;
+  task->registers.edi = frame->edi;
+  task->registers.edx = frame->edx;
+  task->registers.esi = frame->esi;
+}
+
+// Store the state of the interrupt frame for the current running task
+void task_current_save_state(struct interrupt_frame *frame)
+{
+  if (current_task == NULL) {
+    panic("No current task to save\n");
+  }
+
+  task_save_state(current_task, frame);
+}
+
+// Get the stack item at index from the current task
+void *task_current_get_stack_item(int index)
+{
+  if (current_task == NULL) {
+    panic("No current task to save\n");
+  }
+
+  struct task *task = current_task;
+  uint32_t *sp_ptr = (uint32_t *)task->registers.esp;
+
+  return (void *)sp_ptr[index];
+}
+
+// Check if pointer is valid for memory mapped by current task
+bool task_current_validate_pointer(void *ptr)
+{
+  struct task *task = current_task;
+  return process_validate_pointer(task->process, ptr);
 }

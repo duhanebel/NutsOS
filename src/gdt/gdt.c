@@ -1,5 +1,6 @@
 #include "gdt.h"
 #include "kernel.h"
+#include "memory/memory.h"
 #include "stdutil/string.h"
 
 static void encode_gdt_entry(struct gdt_raw *target, const struct gdt *source)
@@ -17,8 +18,8 @@ static void encode_gdt_entry(struct gdt_raw *target, const struct gdt *source)
     panic(buf);
   }
 
-  uint8_t flags = GDT_FLAGS_32BIT_SEGMENT;
   uint32_t limit = source->limit;
+  uint8_t flags = GDT_FLAGS_32BIT_SEGMENT;
   // Check if we can fit in 1byte limit or we need to switch to 4k limit
   // addressing mode.
   if (limit > GDT_MAX_LIMIT_FOR_BYTE_MODE) {
@@ -33,15 +34,16 @@ static void encode_gdt_entry(struct gdt_raw *target, const struct gdt *source)
   target->limit_high_and_flags = ((limit >> 16) & 0x0F) | ((flags << 4) & 0xF0);
 
   // Encode the base
-  target->base_low_16bits = source->base && 0xFFFF;
-  target->base_mid_8bits = (source->base >> 16) && 0xFF;
-  target->base_hi_8bits = (source->base >> 24) && 0xFF;
+  target->base_low_16bits = source->base & 0xFFFF;
+  target->base_mid_8bits = (source->base >> 16) & 0xFF;
+  target->base_high_8bits = (source->base >> 24) & 0xFF;
 
   target->access = source->type;
 }
 
 void get_raw_gdt_struct(struct gdt_raw *gdt_raw, const struct gdt *gdt, int total_entires)
 {
+  memset(gdt_raw, 0x00, sizeof(gdt_raw));
   for (int i = 0; i < total_entires; i++) {
     encode_gdt_entry(&gdt_raw[i], &gdt[i]);
   }

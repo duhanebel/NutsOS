@@ -25,7 +25,7 @@ struct gdt_raw {
   uint8_t base_mid_8bits;
   uint8_t access;
   uint8_t limit_high_and_flags;
-  uint8_t base_hi_8bits;
+  uint8_t base_high_8bits;
 } __attribute__((packed));
 
 /* Access byte:
@@ -44,12 +44,33 @@ struct gdt_raw {
  *   For data segments: Writeable bit. If clear (0), write access for this segment is not allowed. If set (1) write access is allowed. Read access is always allowed for data segments. 
  * Ac: Accessed bit. Best left clear(0), the CPU will set it when the segment is accessed.
  */
-#define GDT_SEG_RW(x)   ((x) << 0x01)
-#define GDT_SEG_DC(x)   ((x) << 0x02)
-#define GDT_SEG_EX(x)   ((x) << 0x03)
-#define GDT_SEG_DESC(x) ((x) << 0x04)
-#define GDT_SEG_PRIV(x) (((x)&0b111) << 0x05)
-#define GDT_SEG_PRES(x) ((x) << 0x07)
+#define GDT_SEG_ACESS(x)       ((x))
+#define GDT_SEG_RW(x)          ((x) << 1)
+#define GDT_SEG_DC(x)          ((x) << 2)
+#define GDT_SEG_EX(x)          ((x) << 3)
+#define GDT_SEG_DESC(x)        ((x) << 4)
+#define GDT_SEG_PRIV(x)        (((x)&0b111) << 5)
+#define GDT_SEG_PRES(x)        ((x) << 7)
+
+#define GDT_TSS_TSSLDT(x)      ((x))
+#define GDT_TSS_BUSY(x)        ((x) << 1)
+//#define GDT_TSS_ZERO(x)      ((x) << 2)
+#define GDT_TSS_32BIT(x)       ((x) << 3)
+#define GDT_TSS_TSSLDT2(x)     ((x) << 4)
+#define GDT_TSS_PRIV(x)        (((x)&0b111) << 5)
+#define GDT_TSS_PRES(x)        ((x) << 7)
+
+// GDT hardcoded offsets
+#define GDT_ENTRY_SIZE         (2 * sizeof(uint32_t))
+#define GDT_KERNEL_CODE_OFFSET (1 * GDT_ENTRY_SIZE)
+#define GDT_KERNEL_DATA_OFFSET (2 * GDT_ENTRY_SIZE)
+#define GDT_USER_CODE_OFFSET   (3 * GDT_ENTRY_SIZE)
+#define GDT_USER_DATA_OFFSET   (4 * GDT_ENTRY_SIZE)
+#define GDT_TSS_OFFSET         (5 * GDT_ENTRY_SIZE)
+
+#define GDT_PRIVILEGE_RING_0   0
+#define GDT_PRIVILEGE_RING_3   3
+#define GDT_TI_BIT(x)          ((x)) << 3
 
 struct gdt {
   uint32_t base;

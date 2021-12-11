@@ -59,6 +59,7 @@ static int process_load_binary(const char *filename, struct process *process)
 
   process->ptr = program_data_ptr;
   process->size = stat.filesize;
+  process->ptr_virt = (uint32_t *)NUTSOS_PROGRAM_VIRTUAL_ADDRESS;
 
 out:
   fclose(fd->index);
@@ -85,6 +86,15 @@ int process_map_memory(struct process *process)
 {
   int res = 0;
   res = process_map_binary(process);
+  if (ISERR(res)) {
+    return res;
+  }
+
+  res = paging_map_to(process->task->page_directory->directory_entry,
+                      (void *)NUTSOS_PROGRAM_VIRTUAL_STACK_ADDRESS_END,
+                      process->stack,
+                      paging_align_address(process->stack + NUTSOS_USER_PROGRAM_STACK_SIZE),
+                      PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL | PAGING_IS_WRITEABLE);
   return res;
 }
 
@@ -137,6 +147,8 @@ static int process_load_for_slot(const char *filename, struct process **out, int
 
   strncpy(process->filename, filename, sizeof(process->filename));
   process->stack = program_stack_ptr;
+  process->stack_virt = (uint32_t *)NUTSOS_PROGRAM_VIRTUAL_STACK_ADDRESS_END;
+  process->stack_size = NUTSOS_USER_PROGRAM_STACK_SIZE;
   process->id = process_slot;
 
   // Create a task
@@ -166,4 +178,12 @@ out:
     // Free the process data
   }
   return res;
+}
+
+// Validate a pointer to be in the range of the process' allocated space. Either as part of the stack of the process image
+// TODO: add check for extra allocations
+bool process_validate_pointer(struct process *process, void *ptr)
+{
+  return (ptr >= process->ptr_virt && ptr < process->ptr_virt + process->size) ||
+         (ptr >= process->stack_virt && ptr < process->stack_virt + process->stack_size);
 }

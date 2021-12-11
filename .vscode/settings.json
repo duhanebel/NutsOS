@@ -4,7 +4,11 @@
         "memory.h": "c",
         "string.h": "c",
         "stddef.h": "c",
-        "stdarg.h": "c"
+        "stdarg.h": "c",
+        "kheap.h": "c",
+        "paging.h": "c",
+        "misc.h": "c",
+        "io.h": "c"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools",
     "makefile.launchConfigurations": [

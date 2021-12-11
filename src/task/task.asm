@@ -10,8 +10,7 @@
  ; ebp+4: registers struct
  task_return:
      mov ebp, esp ; no need to preserve ebp as we're never returning to the caller
-     mov ebx, ebp 
-     add ebx, 4   ; ebx = registers struct
+     mov ebx, [ebp+4] ; ebx = registers struct
 
     ; We need to prepare the stack as iret expexts it. 
      push dword [ebx+44] ; push stack selector (ss)
@@ -20,7 +19,7 @@
      ; Push the flags
      pushf
      pop eax
-     or eax, 0x200 ; Change the exection flag to ring3
+     or eax, 0x200 ; turn on interrupts after iret -- NO: Change the exection flag to ring3
      push eax
 
      push dword [ebx+32] ; push code selector (cs)
@@ -44,11 +43,12 @@
  ; Restores CPU general registers from a registers struct
  ; esp+4: pointer to registers struct
  restore_general_purpose_registers:
-     add ebx, 4 ; ebx = struct registers
+     mov ebx, [esp+4] ; ebx = struct registers
      
      mov edi, [ebx]
      mov esi, [ebx+4]
      mov ebp, [ebx+8]
+     ; ebx goes last
      mov edx, [ebx+16]
      mov ecx, [ebx+20]
      mov eax, [ebx+24]
